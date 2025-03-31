@@ -108,10 +108,10 @@ export default function OrdersPage() {
 						Orders
 					</Link>
 					<Link
-						href="/shipping"
+						href="/Customers"
 						className="text-muted-foreground transition-colors hover:text-foreground/80"
 					>
-						Shipping
+						Customers
 					</Link>
 					<Link
 						href="/reports"
