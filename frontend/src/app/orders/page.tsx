@@ -16,27 +16,38 @@ import {
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 
+const URL = "http://localhost:8000/";
+
 export default function OrdersPage() {
-	const [searched, setSearched] = useState("");
+	const [searchedValue, setSearchedValue] = useState("");
 	const [orders, setOrders] = useState<
-		{ customerName: number; status: string; amount: number }[]
+		{
+			id: number;
+			customerName: string;
+			date: string;
+			status: string;
+			amount: number;
+		}[]
 	>([]);
 
 	const fetchOrders = async () => {
 		try {
-			await axios.get(`${URL}/orders`).then((res) => {
-				const newOrder = {
-					customerName: res.data.Customer,
-					status: res.data.Status,
-					amount: res.data.Total,
-				};
-				setOrders((prevOrder) => [...prevOrder, newOrder]);
-			});
+			const customerId = 1;
+			const res = await axios.get(`${URL}orders/customers/${customerId}/`);
+
+			const ordersData = res.data.map((order: any) => ({
+				id: order.id,
+				customerName: order.customer_name,
+				date: order.order_date,
+				status: order.status,
+				amount: parseFloat(order.total),
+			}));
+
+			setOrders(ordersData);
 		} catch (err) {
-			console.log("blad podczas fe");
+			console.error("Błąd podczas pobierania zamówień:", err);
 		}
 	};
-
 	useEffect(() => {
 		fetchOrders();
 		console.log(orders);
@@ -120,76 +131,62 @@ export default function OrdersPage() {
 						</Link>
 					</nav>
 				</aside>
-				<main className="flex-1 p-6">
-					<div className="space-y-6">
-						<div className="flex items-center justify-between">
-							<div>
-								<h1 className="text-3xl font-bold">Orders</h1>
-								<p className="text-muted-foreground">Manage customer orders</p>
-							</div>
-							<Button>
-								<Plus className="mr-2 h-4 w-4" />
-								New Order
-							</Button>
+				<main className="flex-1 p-6 flex flex-col items-center overflow-x-hidden">
+					<div className="w-full max-w-4xl text-center">
+						<h1 className="text-2xl font-semibold text-gray-800 mb-4">
+							Search for Orders
+						</h1>
+						<div className="flex items-center justify-between bg-white p-3 rounded-lg shadow-md w-full">
+							<Search />
+							<input
+								type="text"
+								placeholder="Search..."
+								value={searchedValue}
+								className="p-2 rounded-md border border-gray-300 flex-1 mx-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								onChange={(e) => setSearchedValue(e.target.value)}
+							/>
+							<Button className="mr-4">Add New Order</Button>
 						</div>
-						<div className="flex items-center gap-4">
-							<div className="relative flex-1">
-								<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-								<Input
-									type="search"
-									placeholder="Search orders..."
-									className="w-full bg-background pl-8"
-								/>
-							</div>
-							<Button variant="outline" size="icon">
-								<Filter className="h-4 w-4" />
-								<span className="sr-only">Filter</span>
-							</Button>
-						</div>
-						<div className="rounded-lg border">
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Order ID</TableHead>
-										<TableHead>Customer</TableHead>
-										<TableHead>Date</TableHead>
-										<TableHead>Items</TableHead>
-										<TableHead>Total</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+						<Table className="w-full max-w-4xl">
+							<TableHeader>
+								<TableRow>
+									<TableHead>Order ID</TableHead>
+									<TableHead>Customer</TableHead>
+									<TableHead>Date</TableHead>
+									<TableHead>Total</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{orders.map((item) => (
+									<TableRow key={item.id}>
+										<TableCell className="font-medium">{item.id}</TableCell>
+										<TableCell>{item.customerName}</TableCell>
+										<TableCell>{item.date}</TableCell>
+										<TableCell>{item.amount}</TableCell>
+										<TableCell>
+											<Badge
+												variant={
+													item.status === "Completed"
+														? "outline"
+														: item.status === "Processing"
+														? "secondary"
+														: "default"
+												}
+											>
+												{item.status}
+											</Badge>
+										</TableCell>
+										<TableCell className="text-right">
+											<Button variant="ghost" size="sm">
+												View
+											</Button>
+										</TableCell>
 									</TableRow>
-								</TableHeader>
-								{/* <TableBody>
-									{orders.map((order) => (
-										<TableRow key={order.id}>
-											<TableCell className="font-medium">{order.id}</TableCell>
-											<TableCell>{order.customer}</TableCell>
-											<TableCell>{order.date}</TableCell>
-											<TableCell>{order.items}</TableCell>
-											<TableCell>{order.total}</TableCell>
-											<TableCell>
-												<Badge
-													variant={
-														order.status === "Completed"
-															? "outline"
-															: order.status === "Processing"
-															? "secondary"
-															: "default"
-													}
-												>
-													{order.status}
-												</Badge>
-											</TableCell>
-											<TableCell className="text-right">
-												<Button variant="ghost" size="sm">
-													View
-												</Button>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody> */}
-							</Table>
-						</div>
+								))}
+							</TableBody>
+						</Table>
 					</div>
 				</main>
 			</div>
