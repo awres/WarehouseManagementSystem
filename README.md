@@ -4,32 +4,68 @@ WarehouseManagementSystem to aplikacja do zarządzania magazynem, umożliwiając
 
 ## Funkcjonalności
 
-- **Zarządzanie produktami**: dodawanie, edytowanie i usuwanie informacji o produktach.&#8203;:contentReference[oaicite:0]{index=0}
-- **Śledzenie stanów magazynowych**: :contentReference[oaicite:1]{index=1}&#8203;:contentReference[oaicite:2]{index=2}
-- **Obsługa zamówień**: :contentReference[oaicite:3]{index=3}&#8203;:contentReference[oaicite:4]{index=4}
-- **Raportowanie**: :contentReference[oaicite:5]{index=5}&#8203;:contentReference[oaicite:6]{index=6}
+- **Zarządzanie produktami**: dodawanie, edytowanie i usuwanie informacji o produktach.
+- **Śledzenie stanów magazynowych**: monitorowanie ilości produktów w magazynie.
+- **Obsługa zamówień**: przyjmowanie, realizacja i archiwizacja zamówień.
+- **Raportowanie**: generowanie raportów dotyczących stanów magazynowych i historii zamówień.
 
 ## Technologie
 
 Projekt wykorzystuje następujące technologie:
 
-- **Frontend**: :contentReference[oaicite:7]{index=7}&#8203;:contentReference[oaicite:8]{index=8}
-- **Backend**: :contentReference[oaicite:9]{index=9}&#8203;:contentReference[oaicite:10]{index=10}
+- **Frontend**: NextJS, TypeScript, Tailwind.
+- **Backend**: Python.
 
 ## Struktura projektu
 
-- `backend/` :contentReference[oaicite:11]{index=11}&#8203;:contentReference[oaicite:12]{index=12}
-- `frontend/` :contentReference[oaicite:13]{index=13}&#8203;:contentReference[oaicite:14]{index=14}
+- `backend/` - kod źródłowy serwera aplikacji.
+- `frontend/` - kod źródłowy interfejsu użytkownika.
 
 ## Wymagania
 
-- :contentReference[oaicite:15]{index=15}&#8203;:contentReference[oaicite:16]{index=16}
-- :contentReference[oaicite:17]{index=17}&#8203;:contentReference[oaicite:18]{index=18}
-- :contentReference[oaicite:19]{index=19}&#8203;:contentReference[oaicite:20]{index=20}
+- Node.js
+- Python 3.x
 
 ## Instalacja
 
-1. :contentReference[oaicite:21]{index=21}&#8203;:contentReference[oaicite:22]{index=22}
-
+1. Sklonuj repozytorium:
    ```bash
    git clone https://github.com/awres/WarehouseManagementSystem.git
+   ```
+
+2. Przejdź do katalogu projektu:
+   ```bash
+   cd WarehouseManagementSystem
+   ```
+
+3. Zainstaluj zależności backendu:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+4. Uruchom serwer backendu:
+   ```bash
+   python app.py
+   ```
+
+5. W nowym terminalu zainstaluj zależności frontendu:
+   ```bash
+   cd frontend
+   pnpm install
+   ```
+
+6. Uruchom aplikację frontendową:
+   ```bash
+   pnpm dev
+   ```
+
+Aplikacja powinna być teraz dostępna pod adresem `http://localhost:3000`.
+
+## Wkład
+
+Wszelkie sugestie i pull requesty są mile widziane. Prosimy o przestrzeganie standardów kodowania i dołączanie odpowiednich testów do nowych funkcji.
+
+## Licencja
+
+Ten projekt jest dostępny na licencji MIT. Szczegółowe informacje znajdują się w pliku `LICENSE`.
