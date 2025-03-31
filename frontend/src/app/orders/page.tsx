@@ -1,6 +1,8 @@
+"use client";
+
 import { Package, Search, Filter, Plus, ClipboardList } from "lucide-react";
 import Link from "next/link";
-
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,74 +14,33 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import axios from "axios";
 
 export default function OrdersPage() {
-	const orders = [
-		{
-			id: "ORD-7891",
-			customer: "Acme Inc.",
-			date: "2023-04-23",
-			total: "$1,245.89",
-			status: "Processing",
-			items: 7,
-		},
-		{
-			id: "ORD-7892",
-			customer: "TechCorp",
-			date: "2023-04-23",
-			total: "$567.50",
-			status: "Pending",
-			items: 3,
-		},
-		{
-			id: "ORD-7893",
-			customer: "Global Supplies",
-			date: "2023-04-22",
-			total: "$2,345.00",
-			status: "Processing",
-			items: 12,
-		},
-		{
-			id: "ORD-7894",
-			customer: "Local Shop",
-			date: "2023-04-22",
-			total: "$156.78",
-			status: "Completed",
-			items: 2,
-		},
-		{
-			id: "ORD-7895",
-			customer: "Big Retailer",
-			date: "2023-04-21",
-			total: "$3,456.90",
-			status: "Completed",
-			items: 15,
-		},
-		{
-			id: "ORD-7896",
-			customer: "Online Store",
-			date: "2023-04-21",
-			total: "$876.23",
-			status: "Processing",
-			items: 5,
-		},
-		{
-			id: "ORD-7897",
-			customer: "Hardware Plus",
-			date: "2023-04-20",
-			total: "$432.10",
-			status: "Completed",
-			items: 4,
-		},
-		{
-			id: "ORD-7898",
-			customer: "Furniture World",
-			date: "2023-04-20",
-			total: "$1,987.65",
-			status: "Pending",
-			items: 8,
-		},
-	];
+	const [searched, setSearched] = useState("");
+	const [orders, setOrders] = useState<
+		{ customerName: string; status: string; amount: number }[]
+	>([]);
+
+	const fetchOrders = async () => {
+		try {
+			await axios.get(`${URL}/orders`).then((res) => {
+				const newOrder = {
+					customerName: res.data.Customer,
+					status: res.data.Status,
+					amount: res.data.Total,
+				};
+				setOrders((prevOrder) => [...prevOrder, newOrder]);
+			});
+		} catch (err) {
+			console.log("blad podczas fe");
+		}
+	};
+
+	useEffect(() => {
+		fetchOrders();
+		console.log(orders);
+	}, []);
 
 	return (
 		<div className="flex min-h-screen w-full flex-col">
@@ -198,7 +159,7 @@ export default function OrdersPage() {
 										<TableHead className="text-right">Actions</TableHead>
 									</TableRow>
 								</TableHeader>
-								<TableBody>
+								{/* <TableBody>
 									{orders.map((order) => (
 										<TableRow key={order.id}>
 											<TableCell className="font-medium">{order.id}</TableCell>
@@ -226,7 +187,7 @@ export default function OrdersPage() {
 											</TableCell>
 										</TableRow>
 									))}
-								</TableBody>
+								</TableBody> */}
 							</Table>
 						</div>
 					</div>

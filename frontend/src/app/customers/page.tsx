@@ -25,7 +25,6 @@ const Customers = () => {
 		{ id: number; name: string; email: string; phone: string }[]
 	>([]);
 
-	// Pobieranie danych z backendu
 	const fetchData = async () => {
 		try {
 			const res = await axios.get(`${URL}/customers`);
