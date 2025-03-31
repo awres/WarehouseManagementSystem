@@ -58,27 +58,24 @@ def add_product(request):
 
 def get_orders_by_customer(request, customer_id):
     try:
-        customer = Customer.objects.get(id=customer_id)
-
-        orders = Order.objects.filter(customer=customer).values(
+        orders = Order.objects.filter(customer_id=customer_id).select_related('customer').values(
             'id', 'order_date', 'status', 'total', 
             'customer__first_name', 'customer__last_name'
         )
 
         orders_list = []
         for order in orders:
+            formatted_date = "Nieprawidłowa data"
             if isinstance(order['order_date'], datetime.datetime):
                 formatted_date = order['order_date'].strftime("%Y/%m/%d %H:%M")
             else:
                 parsed_date = parse_datetime(order['order_date'])
                 if parsed_date:
                     formatted_date = parsed_date.strftime("%Y/%m/%d %H:%M")
-                else:
-                    formatted_date = "Nieprawidłowa data"
 
             order_data = {
                 'id': order['id'],
-                'customer_name': f"{customer.first_name} {customer.last_name}",
+                'customer_name': f"{order['customer__first_name']} {order['customer__last_name']}",
                 'order_date': formatted_date,
                 'status': order['status'],
                 'total': order['total']
