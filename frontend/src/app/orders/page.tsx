@@ -34,7 +34,7 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       const customerId = 1;
-      const res = await axios.get(`${URL}orders/customers/${customerId}/`);
+      const res = await axios.get(`${URL}orders`);
 
       const ordersData = res.data.map((order: any) => ({
         id: order.id,
