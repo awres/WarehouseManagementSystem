@@ -41,12 +41,10 @@ const Customers = () => {
 		}
 	};
 
-	// Pobranie danych przy pierwszym renderze
 	useEffect(() => {
 		fetchData();
 	}, []);
 
-	// Filtrowanie klientów po wpisanym tekscie
 	useEffect(() => {
 		const filtered = customers.filter((item) =>
 			item.name.toLowerCase().includes(searchedValue.toLowerCase())

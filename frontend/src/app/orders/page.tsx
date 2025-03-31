@@ -19,7 +19,7 @@ import axios from "axios";
 export default function OrdersPage() {
 	const [searched, setSearched] = useState("");
 	const [orders, setOrders] = useState<
-		{ customerName: string; status: string; amount: number }[]
+		{ customerName: number; status: string; amount: number }[]
 	>([]);
 
 	const fetchOrders = async () => {
