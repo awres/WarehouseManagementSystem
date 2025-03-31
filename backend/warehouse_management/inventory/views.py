@@ -37,6 +37,7 @@ def get_users(response):
     users = list(User.objects.values())
     return JsonResponse(users, safe=False)
 
+
 def get_orders_by_customer(request, customer_id):
     try:
         # Pobieramy klienta na podstawie customer_id
