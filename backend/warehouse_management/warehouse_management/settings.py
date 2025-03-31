@@ -77,13 +77,18 @@ WSGI_APPLICATION = 'warehouse_management.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wms_db',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': 'railway',  # Nazwa bazy danych z Railway
+        'USER': 'root',  # Użytkownik z Railway
+        'PASSWORD': 'mSyCDkPTpnQttocwMgErgmgxMwBMxpqa',  # Hasło z Railway
+        'HOST': 'maglev.proxy.rlwy.net',  # Host z Railway
+        'PORT': '33920',  # Port z Railway
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        },
     }
 }
+
 
 
 
