@@ -43,12 +43,11 @@ Projekt wykorzystuje następujące technologie:
    cd backend/warehouse_management
    pip install -r requirements.txt
    python manage.py migrate
-   python manage.py runserver
    ```
 
 4. Uruchom serwer backendu:
    ```bash
-   python app.py
+   python manage.py runserver
    ```
 
 5. W nowym terminalu zainstaluj zależności frontendu:
