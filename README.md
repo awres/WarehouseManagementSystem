@@ -42,6 +42,7 @@ Projekt wykorzystuje następujące technologie:
    ```bash
    cd backend/warehouse_management
    pip install -r requirements.txt
+   python manage.py migrate
    python manage.py runserver
    ```
 
