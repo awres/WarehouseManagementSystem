@@ -7,7 +7,10 @@ from .models import Order
 from .models import OrderItem
 from .models import Return
 from .models import User
-
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import ProductSerializer
 
 def get_customers(response):
     customers = list(Customer.objects.values())
@@ -37,6 +40,15 @@ def get_users(response):
     users = list(User.objects.values())
     return JsonResponse(users, safe=False)
 
+
+@api_view(['POST'])
+def add_product(request):
+    if request.method == 'POST':
+        serializer = ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_orders_by_customer(request, customer_id):
