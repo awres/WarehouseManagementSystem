@@ -21,7 +21,7 @@ const Customers = () => {
 	const [customers, setCustomers] = useState<
 		{ id: number; name: string; email: string; phone: string }[]
 	>([]);
-	const [filteredCustomers, setFilteredCustomers] = useState<
+	const [allCustomers, setAllCustomers] = useState<
 		{ id: number; name: string; email: string; phone: string }[]
 	>([]);
 
@@ -35,7 +35,7 @@ const Customers = () => {
 				phone: customer.phone,
 			}));
 			setCustomers(formattedCustomers);
-			setFilteredCustomers(formattedCustomers);
+			setAllCustomers(formattedCustomers);
 		} catch (error) {
 			console.error("Błąd podczas pobierania klientów:", error);
 		}
@@ -46,11 +46,15 @@ const Customers = () => {
 	}, []);
 
 	useEffect(() => {
-		const filtered = customers.filter((item) =>
-			item.name.toLowerCase().includes(searchedValue.toLowerCase())
-		);
-		setFilteredCustomers(filtered);
-	}, [searchedValue, customers]);
+		if (searchedValue.trim() === "") {
+			setCustomers(allCustomers);
+		} else {
+			const filtered = allCustomers.filter((item) =>
+				item.name.toLowerCase().includes(searchedValue.toLowerCase())
+			);
+			setCustomers(filtered);
+		}
+	}, [searchedValue, allCustomers]);
 
 	return (
 		<div className="flex min-h-screen w-full flex-col">
@@ -132,8 +136,8 @@ const Customers = () => {
 					</nav>
 				</aside>
 
-				<main className="flex-1 p-6 flex flex-col items-center">
-					<div className="w-full max-w-md text-center">
+				<main className="flex-1 p-6 flex flex-col items-center overflow-x-hidden">
+					<div className="w-full max-w-4xl text-center">
 						<h1 className="text-2xl font-semibold text-gray-800 mb-4">
 							Search for Customers
 						</h1>
@@ -143,7 +147,7 @@ const Customers = () => {
 								type="text"
 								placeholder="Search..."
 								value={searchedValue}
-								className="pl-3 p-2 rounded-md border border-gray-300 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								className="p-2 rounded-md border border-gray-300 flex-1 mx-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								onChange={(e) => setSearchedValue(e.target.value)}
 							/>
 						</div>
@@ -158,8 +162,8 @@ const Customers = () => {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{filteredCustomers.length > 0 ? (
-									filteredCustomers.map((item) => (
+								{customers.length > 0 ? (
+									customers.map((item) => (
 										<TableRow key={item.id}>
 											<TableCell className="font-medium">{item.id}</TableCell>
 											<TableCell>{item.name}</TableCell>
