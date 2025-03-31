@@ -28,6 +28,7 @@ urlpatterns = [
     path('orderitems/',get_orderItems,  name='get_orderItems'),
     path('returns/',get_returns,  name='get_returns'),
     path('users/',get_users,  name='get_users'),
+    
     path('orders/customers/<int:customer_id>/', get_orders_by_customer, name='get_orders_by_customer')
 
 ]
