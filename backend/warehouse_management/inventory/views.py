@@ -18,9 +18,12 @@ def get_customers(response):
     customers = list(Customer.objects.values())
     return JsonResponse(customers, safe=False)
     
-def get_products(response):
-    products = list(Product.objects.values())
-    return JsonResponse(products, safe=False)
+@api_view(['GET'])
+def get_products(request):
+    products = Product.objects.all()
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
+
 
 def get_roles(response):
     roles = list(Role.objects.values())
