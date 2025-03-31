@@ -12,7 +12,7 @@ from .models import User
 def get_customers(response):
     customers = list(Customer.objects.values())
     return JsonResponse(customers, safe=False)
-
+    
 def get_products(response):
     products = list(Product.objects.values())
     return JsonResponse(products, safe=False)
@@ -36,3 +36,32 @@ def get_returns(response):
 def get_users(response):
     users = list(User.objects.values())
     return JsonResponse(users, safe=False)
+
+def get_orders_by_customer(request, customer_id):
+    try:
+        # Pobieramy klienta na podstawie customer_id
+        customer = Customer.objects.get(id=customer_id)
+
+        # Pobieramy zamówienia tego klienta
+        orders = Order.objects.filter(customer=customer).values(
+            'id', 'order_date', 'status', 'total', 
+            'customer__first_name', 'customer__last_name'
+        )
+
+        # Przekształcamy dane, aby first_name i last_name były na początku
+        orders_list = []
+        for order in orders:
+            order_data = {
+                'id': order['id'],
+                'first_name': order['customer__first_name'],
+                'last_name': order['customer__last_name'],
+                'order_date': order['order_date'],
+                'status': order['status'],
+                'total': order['total']
+            }
+            orders_list.append(order_data)
+
+        return JsonResponse(orders_list, safe=False)
+
+    except Customer.DoesNotExist:
+        return JsonResponse({"error": "Customer not found"}, status=404)

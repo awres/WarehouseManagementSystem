@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from inventory.views import get_customers, get_products, get_roles, get_orders, get_orderItems, get_returns,get_customers, get_users
+from inventory.views import get_customers, get_products, get_roles, get_orders, get_orderItems, get_returns,get_customers, get_users, get_orders_by_customer
 
 
 urlpatterns = [
@@ -27,7 +27,9 @@ urlpatterns = [
     path('orders/',get_orders,  name='get_orders'),
     path('orderitems/',get_orderItems,  name='get_orderItems'),
     path('returns/',get_returns,  name='get_returns'),
-    path('users/',get_users,  name='get_users')
+    path('users/',get_users,  name='get_users'),
+    path('orders/customers/<int:customer_id>/', get_orders_by_customer, name='get_orders_by_customer')
+
 ]
 
 
