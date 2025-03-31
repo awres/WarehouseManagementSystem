@@ -40,7 +40,7 @@ Projekt wykorzystuje następujące technologie:
 
 3. Zainstaluj zależności backendu:
    ```bash
-   cd backend
+   cd backend/warehouse_management
    pip install -r requirements.txt
    ```
 
