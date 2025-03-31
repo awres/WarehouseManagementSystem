@@ -1,16 +1,31 @@
+import random
+import string
 from django.db import models
 
 class Product(models.Model):
-    name = models.CharField(max_length=255)                # Nazwa produktu
-    sku = models.CharField(max_length=100, unique=True)     # SKU (unikalny kod)
-    barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)  # Kod kreskowy
-    category = models.CharField(max_length=100, null=True, blank=True)  # Kategoria produktu
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Cena produktu
-    stock_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Ilość w magazynie
-    
+    name = models.CharField(max_length=255)                
+    sku = models.CharField(max_length=100, unique=True, blank=True)
+    barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)  
+    category = models.CharField(max_length=100, null=True, blank=True)  
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  
+    stock_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)  
+
+    def generate_sku(self):
+        return "SKU-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+    def generate_barcode(self):
+        return ''.join(random.choices(string.digits, k=12))
+
+    def save(self, *args, **kwargs):
+        if not self.sku:
+            self.sku = self.generate_sku()
+        if not self.barcode:
+            self.barcode = self.generate_barcode()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
-
+    
 class Order(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
