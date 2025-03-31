@@ -47,7 +47,7 @@ export default function Dashboard() {
             Orders
           </Link>
           <Link
-            href="/shipping"
+            href="/customers"
             className="text-muted-foreground transition-colors hover:text-foreground/80"
           >
             Customers
@@ -59,10 +59,11 @@ export default function Dashboard() {
             Reports
           </Link>
         </nav>
+
         <div className="ml-auto flex items-center gap-4">
           <Button variant="outline" size="sm">
             <Settings className="mr-2 h-4 w-4" />
-            Settings
+            <Link href="/settings">Settings</Link>
           </Button>
         </div>
       </header>
@@ -91,7 +92,7 @@ export default function Dashboard() {
               Orders
             </Link>
             <Link
-              href="/shipping"
+              href="/customers"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <Truck className="h-4 w-4" />

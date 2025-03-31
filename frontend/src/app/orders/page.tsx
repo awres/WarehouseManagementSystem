@@ -69,7 +69,7 @@ export default function OrdersPage() {
 						Orders
 					</Link>
 					<Link
-						href="/Customers"
+						href="/customers"
 						className="text-muted-foreground transition-colors hover:text-foreground/80"
 					>
 						Customers
@@ -112,11 +112,11 @@ export default function OrdersPage() {
 							Orders
 						</Link>
 						<Link
-							href="/shipping"
+							href="/customers"
 							className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
 						>
 							<Package className="h-4 w-4" />
-							Shipping
+							Customers
 						</Link>
 					</nav>
 				</aside>
