@@ -24,6 +24,7 @@ interface Order {
   customer_name?: string;
   order_date: string;
   status: string;
+  amount: number;
   total: number | string;
 }
 
