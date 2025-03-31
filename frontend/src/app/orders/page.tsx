@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
+import { table } from "console";
 
 const URL = "http://localhost:8000/";
 

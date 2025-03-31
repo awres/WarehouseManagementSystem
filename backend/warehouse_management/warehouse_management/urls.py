@@ -15,8 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from inventory.views import get_customers, get_products, get_roles, get_orders, get_orderItems, get_returns,get_customers, get_users,get_orders_by_customer, add_product
+from django.urls import path,  re_path
+from inventory.views import get_customers, get_products, get_roles, get_orders, get_orderItems, get_returns,get_customers, get_users,get_orders, add_product, add_order
 
 
 urlpatterns = [
@@ -24,12 +24,13 @@ urlpatterns = [
     path('customers/',get_customers,  name='get_customers'),
     path('products/',get_products,  name='get_products'),
     path('roles/',get_roles,  name='get_roles'),
-    path('orders/',get_orders,  name='get_orders'),
+    path('orders/', get_orders, name='get_orders'),
+    path('orders/customers/<int:customer_id>/', get_orders, name='get_orders_by_customer'),
     path('orderitems/',get_orderItems,  name='get_orderItems'),
     path('returns/',get_returns,  name='get_returns'),
     path('users/',get_users,  name='get_users'),
-    path('orders/customers/<int:customer_id>/', get_orders_by_customer, name='get_orders_by_customer'),
     path('api/products/', add_product, name='add_product'),
+    path('api/orders/', add_order, name='add_order')
 ]
 
 
