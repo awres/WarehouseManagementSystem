@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.utils.dateparse import parse_datetime
+import datetime
 from .models import Customer
 from .models import Product
 from .models import Role
@@ -53,23 +55,28 @@ def add_product(request):
 
 def get_orders_by_customer(request, customer_id):
     try:
-        # Pobieramy klienta na podstawie customer_id
         customer = Customer.objects.get(id=customer_id)
 
-        # Pobieramy zamówienia tego klienta
         orders = Order.objects.filter(customer=customer).values(
             'id', 'order_date', 'status', 'total', 
             'customer__first_name', 'customer__last_name'
         )
 
-        # Przekształcamy dane, aby first_name i last_name były na początku
         orders_list = []
         for order in orders:
+            if isinstance(order['order_date'], datetime.datetime):
+                formatted_date = order['order_date'].strftime("%Y/%m/%d %H:%M")
+            else:
+                parsed_date = parse_datetime(order['order_date'])
+                if parsed_date:
+                    formatted_date = parsed_date.strftime("%Y/%m/%d %H:%M")
+                else:
+                    formatted_date = "Nieprawidłowa data"
+
             order_data = {
                 'id': order['id'],
-                'first_name': order['customer__first_name'],
-                'last_name': order['customer__last_name'],
-                'order_date': order['order_date'],
+                'customer_name': f"{customer.first_name} {customer.last_name}",
+                'order_date': formatted_date,
                 'status': order['status'],
                 'total': order['total']
             }
@@ -79,3 +86,5 @@ def get_orders_by_customer(request, customer_id):
 
     except Customer.DoesNotExist:
         return JsonResponse({"error": "Customer not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
