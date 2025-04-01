@@ -107,13 +107,6 @@ export default function SettingsPage() {
               <Truck className="h-4 w-4" />
               Customers
             </Link>
-            <Link
-              href="/settings"
-              className="flex items-center gap-3 rounded-lg bg-primary px-3 py-2 text-primary-foreground"
-            >
-              <Settings className="h-4 w-4" />
-              Settings
-            </Link>
           </nav>
         </aside>
         <main className="flex-1 p-6">
