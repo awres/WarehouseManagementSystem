@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Truck, ClipboardList, BarChart3, Settings } from "lucide-react";
 import { Package, Search, Filter, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -129,7 +130,8 @@ export default function InventoryPage() {
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <Button variant="outline" size="sm">
-            Settings
+            <Settings className="mr-2 h-4 w-4" />
+            <Link href="/settings">Settings</Link>
           </Button>
         </div>
       </header>
@@ -140,7 +142,7 @@ export default function InventoryPage() {
               href="/"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4" />
               Dashboard
             </Link>
             <Link
@@ -154,14 +156,14 @@ export default function InventoryPage() {
               href="/orders"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <ClipboardList className="h-4 w-4" />
               Orders
             </Link>
             <Link
               href="/customers"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <Truck className="h-4 w-4" />
               Customers
             </Link>
           </nav>
