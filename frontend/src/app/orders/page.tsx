@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { ClipboardList, Package, Search } from "lucide-react";
+import { ClipboardList, Package, Search, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,10 +121,10 @@ export default function OrdersPage() {
             Customers
           </Link>
           <Link
-            href="/reports"
+            href="/returns"
             className="text-muted-foreground transition-colors hover:text-foreground/80"
           >
-            Reports
+            Returns
           </Link>
         </nav>
         <div className="ml-auto flex items-center gap-4">
@@ -165,6 +165,13 @@ export default function OrdersPage() {
               <Package className="h-4 w-4" />
               Customers
             </Link>
+            <Link
+              href="/returns"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Returns
+            </Link>
           </nav>
         </aside>
 
@@ -188,46 +195,49 @@ export default function OrdersPage() {
             </div>
           </div>
           <div className="rounded-lg border mt-6">
-          <Table>
-  <TableHeader>
-    <TableRow>
-      <TableHead>ID</TableHead>
-      <TableHead>Customer</TableHead>
-      <TableHead>Total</TableHead>
-      <TableHead>Status</TableHead>
-      <TableHead>Order Date</TableHead>
-      <TableHead className="text-center">Actions</TableHead>
-    </TableRow>
-  </TableHeader>
-  <TableBody>
-    {filteredOrders.map((order) => (
-      <TableRow key={order.id}>
-        <TableCell>{order.id}</TableCell>
-        <TableCell className="font-medium ">{`${order.customer.first_name} ${order.customer.last_name}`}</TableCell>
-        <TableCell>{order.total}</TableCell>
-        <TableCell>
-          <span
-            className={`inline-block px-3 py-1 rounded-full border ${getStatusBadgeClass(
-              order.status
-            )}`}
-          >
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-          </span>
-        </TableCell>
-        <TableCell>{new Date(order.order_date).toLocaleString()}</TableCell>
-        <TableCell className="text-center">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="bg-red-600 text-white hover:bg-red-700"
-          >
-            Cancel
-          </Button>
-        </TableCell>
-      </TableRow>
-    ))}
-  </TableBody>
-</Table>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Order Date</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>{order.id}</TableCell>
+                    <TableCell className="font-medium ">{`${order.customer.first_name} ${order.customer.last_name}`}</TableCell>
+                    <TableCell>{order.total}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full border ${getStatusBadgeClass(
+                          order.status
+                        )}`}
+                      >
+                        {order.status.charAt(0).toUpperCase() +
+                          order.status.slice(1)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(order.order_date).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="bg-red-600 text-white hover:bg-red-700"
+                      >
+                        Cancel
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </main>
       </div>

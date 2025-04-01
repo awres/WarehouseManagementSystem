@@ -37,6 +37,7 @@ interface Product {
 
 export default function InventoryPage() {
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -46,6 +47,23 @@ export default function InventoryPage() {
     category: "",
     price: "",
     stock: "",
+  });
+  const [editFormData, setEditFormData] = useState<{
+    id: number;
+    name: string;
+    category: string;
+    price: string;
+    stock_quantity: string;
+    sku: string;
+    barcode: string;
+  }>({
+    id: 0,
+    name: "",
+    category: "",
+    price: "",
+    stock_quantity: "",
+    sku: "",
+    barcode: "",
   });
   const [inventoryItems, setInventoryItems] = useState<Product[]>([]);
 
@@ -68,6 +86,12 @@ export default function InventoryPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleEditInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = async () => {
     try {
       const payload = {
@@ -77,7 +101,7 @@ export default function InventoryPage() {
 
       await axios.post("http://localhost:8000/post/products/", payload);
 
-      setMessage({ type: "success", text: "Produkt dodany pomyślnie!" });
+      setMessage({ type: "success", text: "Product added successfully!" });
       setShowModal(false);
 
       setFormData({
@@ -91,8 +115,71 @@ export default function InventoryPage() {
 
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
-      setMessage({ type: "error", text: "Błąd podczas dodawania produktu." });
+      setMessage({ type: "error", text: "Error adding product." });
 
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
+
+  const handleEdit = (item: Product) => {
+    setEditFormData({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      price: item.price.toString(),
+      stock_quantity: item.stock_quantity.toString(),
+      sku: item.sku,
+      barcode: item.barcode || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const payload = {
+        ...editFormData,
+        price: Number.parseFloat(editFormData.price),
+        stock_quantity: Number.parseInt(editFormData.stock_quantity),
+      };
+
+      await axios.put(
+        `http://localhost:8000/update/products/${editFormData.id}/`,
+        payload
+      );
+
+      setMessage({
+        type: "success",
+        text: "Product updated successfully!",
+      });
+      setShowEditModal(false);
+      fetchInventory();
+
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Update error:", error);
+      setMessage({
+        type: "error",
+        text: "Error updating product.",
+      });
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await axios.delete(`http://localhost:8000/delete/products/${id}/`);
+      setMessage({
+        type: "success",
+        text: "Product deleted successfully!",
+      });
+      fetchInventory();
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Delete error:", error);
+      setMessage({
+        type: "error",
+        text: "Error deleting product.",
+      });
       setTimeout(() => setMessage(null), 3000);
     }
   };
@@ -228,12 +315,12 @@ export default function InventoryPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nazwa</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Barcode</TableHead>
-                  <TableHead>Kategoria</TableHead>
-                  <TableHead>Ilość</TableHead>
-                  <TableHead>Cena</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
@@ -265,13 +352,24 @@ export default function InventoryPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="bg-black text-white"
-                      >
-                        Edit
-                      </Button>
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="bg-black text-white"
+                          onClick={() => handleEdit(item)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="bg-red-600 text-white"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -325,6 +423,70 @@ export default function InventoryPage() {
             />
             <Button onClick={handleSubmit} className="w-full">
               Submit
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-2xl w-96">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Edit Item</h2>
+              <button onClick={() => setShowEditModal(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <Input
+              name="name"
+              placeholder="Name"
+              value={editFormData.name}
+              onChange={handleEditInputChange}
+              className="mb-2"
+            />
+            <Input
+              name="sku"
+              placeholder="SKU"
+              value={editFormData.sku}
+              onChange={handleEditInputChange}
+              className="mb-2"
+            />
+            <Input
+              name="barcode"
+              placeholder="Barcode"
+              value={editFormData.barcode}
+              onChange={handleEditInputChange}
+              className="mb-2"
+            />
+            <select
+              name="category"
+              value={editFormData.category}
+              onChange={handleEditInputChange}
+              className="w-full p-2 border rounded mb-2"
+            >
+              <option value="">Select Category</option>
+              <option value="electronics">Electronics</option>
+              <option value="furniture">Furniture</option>
+            </select>
+            <Input
+              name="price"
+              placeholder="Price"
+              type="number"
+              value={editFormData.price}
+              onChange={handleEditInputChange}
+              className="mb-2"
+            />
+            <Input
+              name="stock_quantity"
+              placeholder="Stock Quantity"
+              type="number"
+              value={editFormData.stock_quantity}
+              onChange={handleEditInputChange}
+              className="mb-4"
+            />
+            <Button onClick={handleEditSubmit} className="w-full">
+              Save Changes
             </Button>
           </div>
         </div>
