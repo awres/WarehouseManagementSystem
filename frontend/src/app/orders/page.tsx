@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { ClipboardList, Package, Search, RefreshCcw } from "lucide-react";
+import {
+  RefreshCcw,
+  Package,
+  Truck,
+  ClipboardList,
+  Search,
+  BarChart3,
+  Settings,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,7 +149,7 @@ export default function OrdersPage() {
               href="/"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4" />
               Dashboard
             </Link>
             <Link
@@ -162,7 +170,7 @@ export default function OrdersPage() {
               href="/customers"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <Truck className="h-4 w-4" />
               Customers
             </Link>
             <Link
