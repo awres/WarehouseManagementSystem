@@ -11,7 +11,19 @@ import {
   Settings,
   RefreshCcw,
 } from "lucide-react";
-import { Package, Search, Filter, Plus, X } from "lucide-react";
+import {
+  Package,
+  Search,
+  Filter,
+  Plus,
+  X,
+  AlertTriangle,
+  Save,
+  Tag,
+  Layers,
+  DollarSign,
+  PackageCheck,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Product {
   id: number;
@@ -38,6 +51,8 @@ interface Product {
 export default function InventoryPage() {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -165,14 +180,25 @@ export default function InventoryPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const confirmDelete = (id: number) => {
+    setItemToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (itemToDelete === null) return;
+
     try {
-      await axios.delete(`http://localhost:8000/delete/products/${id}/`);
+      await axios.delete(
+        `http://localhost:8000/delete/products/${itemToDelete}/`
+      );
       setMessage({
         type: "success",
         text: "Product deleted successfully!",
       });
       fetchInventory();
+      setShowDeleteModal(false);
+      setItemToDelete(null);
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error("Delete error:", error);
@@ -180,8 +206,42 @@ export default function InventoryPage() {
         type: "error",
         text: "Error deleting product.",
       });
+      setShowDeleteModal(false);
       setTimeout(() => setMessage(null), 3000);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  };
+
+  // Animation variants for modals
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.9,
+      transition: {
+        duration: 0.2,
+      },
+    },
+  };
+
+  // Animation variants for backdrop
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 },
   };
 
   return (
@@ -279,7 +339,10 @@ export default function InventoryPage() {
                   Manage your warehouse inventory
                 </p>
               </div>
-              <Button onClick={() => setShowModal(true)}>
+              <Button
+                onClick={() => setShowModal(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
               </Button>
@@ -299,19 +362,32 @@ export default function InventoryPage() {
               </Button>
             </div>
           </div>
-          {message && (
-            <div
-              className={`p-3 rounded-lg ${
-                message.type === "success"
-                  ? "bg-green-200 text-green-800"
-                  : "bg-red-200 text-red-800"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
 
-          <div className="rounded-lg border mt-6">
+          <AnimatePresence>
+            {message && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={`p-4 rounded-lg mt-4 shadow-md ${
+                  message.type === "success"
+                    ? "bg-green-100 text-green-800 border border-green-200"
+                    : "bg-red-100 text-red-800 border border-red-200"
+                }`}
+              >
+                <div className="flex items-center">
+                  {message.type === "success" ? (
+                    <PackageCheck className="h-5 w-5 mr-2" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5 mr-2" />
+                  )}
+                  {message.text}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="rounded-lg border mt-6 shadow-sm">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -333,7 +409,7 @@ export default function InventoryPage() {
                     <TableCell>{item.barcode || "No Barcode"}</TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.stock_quantity}</TableCell>
-                    <TableCell>{item.price || "Unknown"}</TableCell>
+                    <TableCell>${item.price || "Unknown"}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
@@ -354,18 +430,18 @@ export default function InventoryPage() {
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="bg-black text-white"
+                          className="border-black hover:bg-black hover:text-white transition-colors"
                           onClick={() => handleEdit(item)}
                         >
                           Edit
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="bg-red-600 text-white"
-                          onClick={() => handleDelete(item.id)}
+                          className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                          onClick={() => confirmDelete(item.id)}
                         >
                           Delete
                         </Button>
@@ -378,119 +454,320 @@ export default function InventoryPage() {
           </div>
         </main>
       </div>
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-2xl w-96">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Add New Item</h2>
-              <button onClick={() => setShowModal(false)}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <Input
-              name="name"
-              placeholder="Name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="mb-2"
-            />
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded mb-2"
-            >
-              <option value="">Select Category</option>
-              <option value="electronics">Electronics</option>
-              <option value="furniture">Furniture</option>
-            </select>
 
-            <Input
-              name="price"
-              placeholder="Price"
-              type="number"
-              value={formData.price}
-              onChange={handleInputChange}
-              className="mb-2"
+      {/* Add Item Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={backdropVariants}
+              onClick={() => setShowModal(false)}
             />
-            <Input
-              name="stock"
-              placeholder="Stock Quantity"
-              type="number"
-              value={formData.stock}
-              onChange={handleInputChange}
-              className="mb-4"
-            />
-            <Button onClick={handleSubmit} className="w-full">
-              Submit
-            </Button>
-          </div>
-        </div>
-      )}
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+            >
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md pointer-events-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <div className="bg-primary/10 p-2 rounded-full mr-3">
+                      <Plus className="h-6 w-6 text-primary" />
+                    </div>
+                    <h2 className="text-xl font-bold">Add New Item</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Product Name</label>
+                    <div className="relative">
+                      <Package className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <Input
+                        name="name"
+                        placeholder="Enter product name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Category</label>
+                    <div className="relative">
+                      <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleInputChange}
+                        className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="">Select Category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="furniture">Furniture</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Price</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <Input
+                        name="price"
+                        placeholder="0.00"
+                        type="number"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Stock Quantity
+                    </label>
+                    <div className="relative">
+                      <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <Input
+                        name="stock"
+                        placeholder="0"
+                        type="number"
+                        value={formData.stock}
+                        onChange={handleInputChange}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <Button
+                    onClick={handleSubmit}
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Product
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Edit Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-2xl w-96">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Edit Item</h2>
-              <button onClick={() => setShowEditModal(false)}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <Input
-              name="name"
-              placeholder="Name"
-              value={editFormData.name}
-              onChange={handleEditInputChange}
-              className="mb-2"
+      <AnimatePresence>
+        {showEditModal && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={backdropVariants}
+              onClick={() => setShowEditModal(false)}
             />
-            <Input
-              name="sku"
-              placeholder="SKU"
-              value={editFormData.sku}
-              onChange={handleEditInputChange}
-              className="mb-2"
-            />
-            <Input
-              name="barcode"
-              placeholder="Barcode"
-              value={editFormData.barcode}
-              onChange={handleEditInputChange}
-              className="mb-2"
-            />
-            <select
-              name="category"
-              value={editFormData.category}
-              onChange={handleEditInputChange}
-              className="w-full p-2 border rounded mb-2"
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
             >
-              <option value="">Select Category</option>
-              <option value="electronics">Electronics</option>
-              <option value="furniture">Furniture</option>
-            </select>
-            <Input
-              name="price"
-              placeholder="Price"
-              type="number"
-              value={editFormData.price}
-              onChange={handleEditInputChange}
-              className="mb-2"
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md pointer-events-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <div className="bg-blue-100 p-2 rounded-full mr-3">
+                      <Save className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h2 className="text-xl font-bold">Edit Product</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Product Name</label>
+                    <div className="relative">
+                      <Package className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <Input
+                        name="name"
+                        placeholder="Enter product name"
+                        value={editFormData.name}
+                        onChange={handleEditInputChange}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">SKU</label>
+                      <div className="relative">
+                        <Tag className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        <Input
+                          name="sku"
+                          placeholder="SKU"
+                          value={editFormData.sku}
+                          onChange={handleEditInputChange}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Barcode</label>
+                      <div className="relative">
+                        <Tag className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        <Input
+                          name="barcode"
+                          placeholder="Barcode"
+                          value={editFormData.barcode}
+                          onChange={handleEditInputChange}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Category</label>
+                    <div className="relative">
+                      <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <select
+                        name="category"
+                        value={editFormData.category}
+                        onChange={handleEditInputChange}
+                        className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="furniture">Furniture</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Price</label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        <Input
+                          name="price"
+                          placeholder="0.00"
+                          type="number"
+                          value={editFormData.price}
+                          onChange={handleEditInputChange}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Stock</label>
+                      <div className="relative">
+                        <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        <Input
+                          name="stock_quantity"
+                          placeholder="0"
+                          type="number"
+                          value={editFormData.stock_quantity}
+                          onChange={handleEditInputChange}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <Button
+                    onClick={handleEditSubmit}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={backdropVariants}
+              onClick={cancelDelete}
             />
-            <Input
-              name="stock_quantity"
-              placeholder="Stock Quantity"
-              type="number"
-              value={editFormData.stock_quantity}
-              onChange={handleEditInputChange}
-              className="mb-4"
-            />
-            <Button onClick={handleEditSubmit} className="w-full">
-              Save Changes
-            </Button>
-          </div>
-        </div>
-      )}
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+            >
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md pointer-events-auto">
+                <div className="flex flex-col items-center mb-6">
+                  <div className="bg-red-100 p-4 rounded-full mb-4">
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-center">
+                    Confirm Deletion
+                  </h2>
+                  <p className="text-center mt-2 text-gray-600 dark:text-gray-300">
+                    Are you sure you want to delete this product? This action
+                    cannot be undone.
+                  </p>
+                </div>
+
+                <div className="flex gap-4 mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={cancelDelete}
+                    className="w-1/2 border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleDelete}
+                    className="w-1/2 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
