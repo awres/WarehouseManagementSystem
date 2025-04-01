@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -6,8 +8,69 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Package, Users, ShoppingCart, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function AdminDashboardPage() {
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [newCustomersThisMonth, setNewCustomersThisMonth] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [ordersToday, setOrdersToday] = useState(0);
+  useEffect(() => {
+    const fetchTotalProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/products/");
+        setTotalProducts(response.data.length);
+      } catch (error) {
+        console.error("Error fetching total products:", error);
+      }
+    };
+
+    fetchTotalProducts();
+
+    const fetchTotalUsers = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/customers");
+        setTotalCustomers(response.data.length);
+
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+
+        const count = response.data.filter((customer: any) => {
+          const createdAt = new Date(customer.created_at);
+          return (
+            createdAt.getFullYear() === currentYear &&
+            createdAt.getMonth() === currentMonth
+          );
+        }).length;
+
+        setNewCustomersThisMonth(count);
+      } catch (error) {
+        console.error("Error fetching total customers:", error);
+      }
+    };
+
+    fetchTotalUsers();
+
+    const fetchTotalOrders = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/orders");
+        setTotalOrders(response.data.length);
+        const today = new Date();
+        const todayStr = today.toISOString().split("T")[0];
+        const count = response.data.filter((order: any) =>
+          order.order_date.startsWith(todayStr)
+        ).length;
+        setOrdersToday(count);
+      } catch (error) {
+        console.error("Error fetching total orders:", error);
+      }
+    };
+
+    fetchTotalOrders();
+  }, []);
   return (
     <div className="space-y-6">
       <div>
@@ -26,20 +89,21 @@ export default function AdminDashboardPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,284</div>
-            <p className="text-xs text-muted-foreground">
-              142 added this month
-            </p>
+            <div className="text-2xl font-bold">{totalProducts}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Customers
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">3 new this month</p>
+            <div className="text-2xl font-bold">{totalCustomers}</div>
+            <p className="text-xs text-muted-foreground">
+              {newCustomersThisMonth} new this month
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -48,8 +112,10 @@ export default function AdminDashboardPage() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">432</div>
-            <p className="text-xs text-muted-foreground">56 processed today</p>
+            <div className="text-2xl font-bold">{totalOrders}</div>
+            <p className="text-xs text-muted-foreground">
+              {ordersToday} orders today
+            </p>
           </CardContent>
         </Card>
         <Card>
