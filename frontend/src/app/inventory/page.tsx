@@ -1,7 +1,16 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect } from "react";
 import axios from "axios";
+import {
+  Truck,
+  ClipboardList,
+  BarChart3,
+  Settings,
+  RefreshCcw,
+} from "lucide-react";
 import { Package, Search, Filter, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -38,11 +47,11 @@ export default function InventoryPage() {
     price: "",
     stock: "",
   });
-  const [inventoryItems, setInventoryItems] = useState<Product[]>([]); // Typowanie inventoryItems
+  const [inventoryItems, setInventoryItems] = useState<Product[]>([]);
 
   const fetchInventory = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/products/");
+      const response = await axios.get("http://localhost:8000/get/products/");
       setInventoryItems(response.data);
     } catch (error) {
       console.error("Error fetching inventory items:", error);
@@ -66,7 +75,7 @@ export default function InventoryPage() {
         stock_quantity: formData.stock.toString(),
       };
 
-      await axios.post("http://localhost:8000/api/products/", payload);
+      await axios.post("http://localhost:8000/post/products/", payload);
 
       setMessage({ type: "success", text: "Produkt dodany pomyślnie!" });
       setShowModal(false);
@@ -121,15 +130,16 @@ export default function InventoryPage() {
             Customers
           </Link>
           <Link
-            href="/reports"
+            href="/returns"
             className="text-muted-foreground transition-colors hover:text-foreground/80"
           >
-            Reports
+            Returns
           </Link>
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <Button variant="outline" size="sm">
-            Settings
+            <Settings className="mr-2 h-4 w-4" />
+            <Link href="/settings">Settings</Link>
           </Button>
         </div>
       </header>
@@ -140,7 +150,7 @@ export default function InventoryPage() {
               href="/"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4" />
               Dashboard
             </Link>
             <Link
@@ -154,15 +164,22 @@ export default function InventoryPage() {
               href="/orders"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <ClipboardList className="h-4 w-4" />
               Orders
             </Link>
             <Link
               href="/customers"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <Truck className="h-4 w-4" />
               Customers
+            </Link>
+            <Link
+              href="/returns"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Returns
             </Link>
           </nav>
         </aside>
@@ -222,8 +239,8 @@ export default function InventoryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inventoryItems.map((item) => (
-                  <TableRow key={item.id}>
+                {inventoryItems.map((item, index) => (
+                  <TableRow key={`${item.id}-${index}`}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.sku}</TableCell>
                     <TableCell>{item.barcode || "No Barcode"}</TableCell>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  RefreshCcw,
   Package,
   Truck,
   ClipboardList,
@@ -53,10 +54,10 @@ export default function Dashboard() {
             Customers
           </Link>
           <Link
-            href="/reports"
+            href="/returns"
             className="text-muted-foreground transition-colors hover:text-foreground/80"
           >
-            Reports
+            Returns
           </Link>
         </nav>
 
@@ -97,6 +98,13 @@ export default function Dashboard() {
             >
               <Truck className="h-4 w-4" />
               Customers
+            </Link>
+            <Link
+              href="/returns"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Returns
             </Link>
           </nav>
         </aside>

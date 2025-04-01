@@ -1,6 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  Truck,
+  ClipboardList,
+  BarChart3,
+  Settings,
+  RefreshCcw,
+} from "lucide-react";
 import axios from "axios";
 import { Package, Search } from "lucide-react";
 import Link from "next/link";
@@ -31,10 +38,9 @@ export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
 
-  // Funkcja do pobierania danych klientów
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/customers/");
+      const response = await axios.get("http://localhost:8000/get/customers/");
       setCustomers(response.data);
       setFilteredCustomers(response.data);
     } catch (error) {
@@ -47,11 +53,14 @@ export default function CustomersPage() {
     setSearchQuery(query);
 
     if (query) {
-      const filtered = customers.filter((customer) =>
-        `${customer.first_name} ${customer.last_name}`.toLowerCase().includes(query.toLowerCase()) ||
-        customer.email.toLowerCase().includes(query.toLowerCase()) ||
-        customer.phone.toLowerCase().includes(query.toLowerCase()) ||
-        customer.address.toLowerCase().includes(query.toLowerCase())
+      const filtered = customers.filter(
+        (customer) =>
+          `${customer.first_name} ${customer.last_name}`
+            .toLowerCase()
+            .includes(query.toLowerCase()) ||
+          customer.email.toLowerCase().includes(query.toLowerCase()) ||
+          customer.phone.toLowerCase().includes(query.toLowerCase()) ||
+          customer.address.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredCustomers(filtered);
     } else {
@@ -96,11 +105,17 @@ export default function CustomersPage() {
             Customers
           </Link>
           <Link
-            href="/reports"
-            className="text-muted-foreground hover:text-foreground/80"
+            href="/returns"
+            className="text-muted-foreground transition-colors hover:text-foreground/80"
           >
-            Reports
+            Returns
           </Link>
+          <div className="ml-auto flex items-center gap-4">
+            <Button variant="outline" size="sm">
+              <Settings className="mr-2 h-4 w-4" />
+              <Link href="/settings">Settings</Link>
+            </Button>
+          </div>
         </nav>
       </header>
 
@@ -111,7 +126,7 @@ export default function CustomersPage() {
               href="/"
               className="flex items-center gap-3 rounded-lg px-3 py-2 hover:text-foreground"
             >
-              <Package className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4" />
               Dashboard
             </Link>
             <Link
@@ -125,15 +140,22 @@ export default function CustomersPage() {
               href="/orders"
               className="flex items-center gap-3 rounded-lg px-3 py-2 hover:text-foreground"
             >
-              <Search className="h-4 w-4" />
+              <ClipboardList className="h-4 w-4" />
               Orders
             </Link>
             <Link
               href="/customers"
               className="flex items-center gap-3 rounded-lg bg-primary px-3 py-2 text-primary-foreground"
             >
-              <Package className="h-4 w-4" />
+              <Truck className="h-4 w-4" />
               Customers
+            </Link>
+            <Link
+              href="/returns"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Returns
             </Link>
           </nav>
         </aside>
@@ -142,9 +164,7 @@ export default function CustomersPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold">Customers</h1>
-              <p className="text-muted-foreground">
-                Manage your customer base
-              </p>
+              <p className="text-muted-foreground">Manage your customer base</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="relative flex-1">
@@ -182,8 +202,12 @@ export default function CustomersPage() {
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>{customer.phone}</TableCell>
                     <TableCell>{customer.address}</TableCell>
-                    <TableCell>{new Date(customer.created_at).toLocaleString()}</TableCell>
-                    <TableCell>{new Date(customer.updated_at).toLocaleString()}</TableCell>
+                    <TableCell>
+                      {new Date(customer.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(customer.updated_at).toLocaleString()}
+                    </TableCell>
                     <TableCell className="text-center">
                       <Button
                         variant="destructive"
