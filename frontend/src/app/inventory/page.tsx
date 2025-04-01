@@ -42,7 +42,7 @@ export default function InventoryPage() {
 
   const fetchInventory = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/products/");
+      const response = await axios.get("http://localhost:8000/api/products/");
       setInventoryItems(response.data);
     } catch (error) {
       console.error("Error fetching inventory items:", error);

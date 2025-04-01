@@ -31,7 +31,6 @@ export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
 
-  // Funkcja do pobierania danych klientów
   const fetchCustomers = async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/customers/");
