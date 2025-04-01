@@ -17,6 +17,12 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'address', 'created_at', 'updated_at']
 
+class CustomerUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'updated_at']
+        read_only_fields = ['updated_at']  # Prevents manual modification of updated_at
+
 class OrdersSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer()
 

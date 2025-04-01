@@ -7,6 +7,7 @@ from .models import Order
 from .models import OrderItem
 from .models import Return
 from .models import User
+from django.utils import timezone
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -48,6 +49,22 @@ def add_order(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+def update_customer(request, id):
+    try:
+        customer = Customer.objects.get(pk=id)
+    except Customer.DoesNotExist:
+        return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = CustomerSerializer(customer, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save(updated_at=timezone.now())  # ✅ Ensure updated_at is set
+        return Response(serializer.data)
+
+    print(serializer.errors)  # ✅ Print validation errors in the console
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['PUT'])
 def update_product(request, id):

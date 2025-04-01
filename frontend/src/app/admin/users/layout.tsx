@@ -92,32 +92,42 @@ export default function AdminLayout({
     if (editFormData) {
       try {
         const response = await fetch(
-          `http://localhost:8000/customers/${editFormData.id}`,
+          `http://localhost:8000/update/customers/${editFormData.id}/`,
           {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(editFormData),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              first_name: editFormData.first_name,
+              last_name: editFormData.last_name,
+              email: editFormData.email,
+              phone: editFormData.phone,
+              address: editFormData.address,
+              updated_at: new Date().toISOString(),
+            }),
           }
         );
 
         if (response.ok) {
-          setCustomers(
-            customers.map((customer) =>
-              customer.id === editFormData.id ? editFormData : customer
+          const updatedCustomer = await response.json();
+
+          setCustomers((prevCustomers) =>
+            prevCustomers.map((customer) =>
+              customer.id === updatedCustomer.id ? updatedCustomer : customer
             )
           );
-          setFilteredCustomers(
-            filteredCustomers.map((customer) =>
-              customer.id === editFormData.id ? editFormData : customer
-            )
-          );
+
           setEditingCustomer(null);
           setEditFormData(null);
+
+          alert("Customer updated successfully! ✅");
         } else {
-          console.error("Failed to save changes");
+          alert("Failed to update customer ❌");
         }
       } catch (error) {
         console.error("Error saving customer data:", error);
+        alert("Error updating customer ❌");
       }
     }
   };
