@@ -39,11 +39,11 @@ export default function InventoryPage() {
     price: "",
     stock: "",
   });
-  const [inventoryItems, setInventoryItems] = useState<Product[]>([]); // Typowanie inventoryItems
+  const [inventoryItems, setInventoryItems] = useState<Product[]>([]);
 
   const fetchInventory = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/products/");
+      const response = await axios.get("http://localhost:8000/get/products/");
       setInventoryItems(response.data);
     } catch (error) {
       console.error("Error fetching inventory items:", error);
@@ -67,7 +67,7 @@ export default function InventoryPage() {
         stock_quantity: formData.stock.toString(),
       };
 
-      await axios.post("http://localhost:8000/api/products/", payload);
+      await axios.post("http://localhost:8000/post/products/", payload);
 
       setMessage({ type: "success", text: "Produkt dodany pomyślnie!" });
       setShowModal(false);

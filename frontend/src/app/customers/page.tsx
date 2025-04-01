@@ -34,7 +34,7 @@ export default function CustomersPage() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/customers/");
+      const response = await axios.get("http://localhost:8000/get/customers/");
       setCustomers(response.data);
       setFilteredCustomers(response.data);
     } catch (error) {

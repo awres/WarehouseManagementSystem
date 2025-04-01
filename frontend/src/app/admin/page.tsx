@@ -20,7 +20,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchTotalProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/products/");
+        const response = await axios.get("http://localhost:8000/get/products/");
         setTotalProducts(response.data.length);
       } catch (error) {
         console.error("Error fetching total products:", error);
@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
 
     const fetchTotalUsers = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/customers");
+        const response = await axios.get("http://localhost:8000/get/customers");
         setTotalCustomers(response.data.length);
 
         const today = new Date();
@@ -56,7 +56,7 @@ export default function AdminDashboardPage() {
 
     const fetchTotalOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/orders");
+        const response = await axios.get("http://localhost:8000/get/orders");
         setTotalOrders(response.data.length);
         const today = new Date();
         const todayStr = today.toISOString().split("T")[0];

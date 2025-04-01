@@ -30,7 +30,7 @@ def get_orders(response):
 
 
 @api_view(['POST'])
-def add_product(request):
+def post_product(request):
     if request.method == 'POST':
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():

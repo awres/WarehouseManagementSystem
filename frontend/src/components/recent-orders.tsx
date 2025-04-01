@@ -47,7 +47,7 @@ export function RecentOrders() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/customers/");
+      const res = await axios.get("http://localhost:8000/get/customers/");
       const customersMap: Record<number, Customer> = {};
 
       res.data.forEach((customer: Customer) => {
