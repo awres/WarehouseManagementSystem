@@ -12,11 +12,13 @@ from .models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, CustomerSerializer
 
-def get_customers(response):
-    customers = list(Customer.objects.values())
-    return JsonResponse(customers, safe=False)
+@api_view(['GET'])
+def get_customers(request):
+    customers = Customer.objects.all()
+    serializer = CustomerSerializer(customers, many=True)
+    return Response(serializer.data)
     
 @api_view(['GET'])
 def get_products(request):

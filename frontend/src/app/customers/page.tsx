@@ -1,10 +1,11 @@
 "use client";
 
-import { Package, Search, ClipboardList } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Package, Search } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -14,43 +15,53 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const URL = "http://localhost:8000/";
+interface Customer {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  created_at: string;
+  updated_at: string;
+}
 
-const Customers = () => {
-  const [searchedValue, setSearchedValue] = useState("");
-  const [customers, setCustomers] = useState<
-    { id: number; name: string; email: string; phone: string }[]
-  >([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<
-    { id: number; name: string; email: string; phone: string }[]
-  >([]);
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
 
-  const fetchData = async () => {
+  // Funkcja do pobierania danych klientów
+  const fetchCustomers = async () => {
     try {
-      const res = await axios.get(`${URL}/customers`);
-      const formattedCustomers = res.data.map((customer: any) => ({
-        id: customer.id,
-        name: `${customer.first_name} ${customer.last_name}`,
-        email: customer.email,
-        phone: customer.phone,
-      }));
-      setCustomers(formattedCustomers);
-      setFilteredCustomers(formattedCustomers);
+      const response = await axios.get("http://localhost:8000/api/customers/");
+      setCustomers(response.data);
+      setFilteredCustomers(response.data);
     } catch (error) {
-      console.error("Błąd podczas pobierania klientów:", error);
+      console.error("Error fetching customers:", error);
+    }
+  };
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+
+    if (query) {
+      const filtered = customers.filter((customer) =>
+        `${customer.first_name} ${customer.last_name}`.toLowerCase().includes(query.toLowerCase()) ||
+        customer.email.toLowerCase().includes(query.toLowerCase()) ||
+        customer.phone.toLowerCase().includes(query.toLowerCase()) ||
+        customer.address.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredCustomers(filtered);
+    } else {
+      setFilteredCustomers(customers);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchCustomers();
   }, []);
-
-  useEffect(() => {
-    const filtered = customers.filter((item) =>
-      item.name.toLowerCase().includes(searchedValue.toLowerCase())
-    );
-    setFilteredCustomers(filtered);
-  }, [searchedValue, customers]);
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -91,11 +102,6 @@ const Customers = () => {
             Reports
           </Link>
         </nav>
-        <div className="ml-auto flex items-center gap-4">
-          <Button variant="outline" size="sm">
-            Settings
-          </Button>
-        </div>
       </header>
 
       <div className="flex flex-1">
@@ -119,7 +125,7 @@ const Customers = () => {
               href="/orders"
               className="flex items-center gap-3 rounded-lg px-3 py-2 hover:text-foreground"
             >
-              <ClipboardList className="h-4 w-4" />
+              <Search className="h-4 w-4" />
               Orders
             </Link>
             <Link
@@ -132,22 +138,29 @@ const Customers = () => {
           </nav>
         </aside>
 
-        <main className="flex-1 p-6 flex flex-col items-center">
-          <div className="w-full max-w-md text-center">
-            <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-              Search for Customers
-            </h1>
-            <div className="flex items-center justify-center space-x-4 bg-white p-3 rounded-lg shadow-md">
-              <Search />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchedValue}
-                className="pl-3 p-2 rounded-md border border-gray-300 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onChange={(e) => setSearchedValue(e.target.value)}
-              />
+        <main className="flex-1 p-6">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold">Customers</h1>
+              <p className="text-muted-foreground">
+                Manage your customer base
+              </p>
             </div>
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search customers..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="w-full bg-background pl-8"
+                />
+              </div>
+            </div>
+          </div>
 
+          <div className="rounded-lg border mt-6">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -155,28 +168,33 @@ const Customers = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>Updated At</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.length > 0 ? (
-                  filteredCustomers.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.id}</TableCell>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.email}</TableCell>
-                      <TableCell>{item.phone}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-center text-gray-500 p-4"
-                    >
-                      No customers found.
+                {filteredCustomers.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell>{customer.id}</TableCell>
+                    <TableCell className="font-medium">{`${customer.first_name} ${customer.last_name}`}</TableCell>
+                    <TableCell>{customer.email}</TableCell>
+                    <TableCell>{customer.phone}</TableCell>
+                    <TableCell>{customer.address}</TableCell>
+                    <TableCell>{new Date(customer.created_at).toLocaleString()}</TableCell>
+                    <TableCell>{new Date(customer.updated_at).toLocaleString()}</TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="bg-red-600 text-white hover:bg-red-700"
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
-                )}
+                ))}
               </TableBody>
             </Table>
           </div>
@@ -184,6 +202,4 @@ const Customers = () => {
       </div>
     </div>
   );
-};
-
-export default Customers;
+}

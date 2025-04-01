@@ -21,7 +21,7 @@ from inventory.views import get_customers, get_products, get_roles, get_orders, 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('customers/',get_customers,  name='get_customers'),
+    path('api/customers/', get_customers, name='get_customers'),
     path('products/',get_products,  name='get_products'),
     path('roles/',get_roles,  name='get_roles'),
     path('orders/', get_orders, name='get_orders'),

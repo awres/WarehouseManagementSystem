@@ -218,7 +218,7 @@ export default function InventoryPage() {
                   <TableHead>Ilość</TableHead>
                   <TableHead>Cena</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -247,7 +247,7 @@ export default function InventoryPage() {
                           : "Out of Stock"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
