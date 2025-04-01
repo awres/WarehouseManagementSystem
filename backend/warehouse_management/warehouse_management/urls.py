@@ -16,15 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from inventory.views import get_products,get_customers, post_product, get_orders
-
+from inventory.views import get_products, get_customers, post_product, get_orders, update_product, delete_product, add_order
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('get/customers/', get_customers, name='get_customers'),
-    path('get/products/',get_products,  name='get_products'),
+    path('get/products/', get_products, name='get_products'),
     path('post/products/', post_product, name='post_product'),
     path('get/orders/', get_orders, name='get_orders'),
+    path('update/products/<int:id>/', update_product, name='update_product'),
+    path('delete/products/<int:id>/', delete_product, name='delete_product'),
 ]
-
-
