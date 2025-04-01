@@ -1,8 +1,16 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Truck, ClipboardList, BarChart3, Settings } from "lucide-react";
+import {
+  Truck,
+  ClipboardList,
+  BarChart3,
+  Settings,
+  RefreshCcw,
+} from "lucide-react";
 import { Package, Search, Filter, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -122,10 +130,10 @@ export default function InventoryPage() {
             Customers
           </Link>
           <Link
-            href="/reports"
+            href="/returns"
             className="text-muted-foreground transition-colors hover:text-foreground/80"
           >
-            Reports
+            Returns
           </Link>
         </nav>
         <div className="ml-auto flex items-center gap-4">
@@ -165,6 +173,13 @@ export default function InventoryPage() {
             >
               <Truck className="h-4 w-4" />
               Customers
+            </Link>
+            <Link
+              href="/returns"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Returns
             </Link>
           </nav>
         </aside>
@@ -224,8 +239,8 @@ export default function InventoryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inventoryItems.map((item) => (
-                  <TableRow key={item.id}>
+                {inventoryItems.map((item, index) => (
+                  <TableRow key={`${item.id}-${index}`}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.sku}</TableCell>
                     <TableCell>{item.barcode || "No Barcode"}</TableCell>
