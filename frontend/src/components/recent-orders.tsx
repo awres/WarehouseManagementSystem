@@ -54,7 +54,7 @@ export function RecentOrders() {
           status: order.status || "Pending",
           amount: typeof order.total === "number" ? order.total : Number.parseFloat(order.total || "0"),
         }))
-        .slice(-5) // Show 6 orders to match InventorySummary
+        .slice(-5)
 
       setOrders(ordersData)
       setLoading(false)
@@ -71,11 +71,9 @@ export function RecentOrders() {
 
   const getStatusConfig = (status: string) => {
     const statusLower = status.toLowerCase()
-
-    // Updated color scheme with yellow for processing
     if (statusLower === "shipped" || statusLower === "completed") {
       return {
-        bg: "bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/20",
+        bg: "",
         border: "border-emerald-200 dark:border-emerald-800",
         badge: "bg-gradient-to-r from-emerald-500 to-green-500 text-white",
         icon: <CheckCircle2Icon className="h-3.5 w-3.5" />,
@@ -84,7 +82,7 @@ export function RecentOrders() {
       }
     } else if (statusLower === "cancelled") {
       return {
-        bg: "bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/20",
+        bg: "",
         border: "border-red-200 dark:border-red-800",
         badge: "bg-gradient-to-r from-red-500 to-rose-500 text-white",
         icon: <ShieldAlertIcon className="h-3.5 w-3.5" />,
@@ -93,7 +91,7 @@ export function RecentOrders() {
       }
     } else if (statusLower === "processing") {
       return {
-        bg: "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/20",
+        bg: "",
         border: "border-yellow-200 dark:border-yellow-800",
         badge: "bg-gradient-to-r from-yellow-500 to-amber-500 text-white",
         icon: <Clock3Icon className="h-3.5 w-3.5" />,
@@ -101,9 +99,8 @@ export function RecentOrders() {
         iconColor: "text-yellow-600 dark:text-yellow-400",
       }
     } else {
-      // Pending or any other status
       return {
-        bg: "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/20",
+        bg: "",
         border: "border-blue-200 dark:border-blue-800",
         badge: "bg-gradient-to-r from-blue-500 to-indigo-500 text-white",
         icon: <Clock3Icon className="h-3.5 w-3.5" />,

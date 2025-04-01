@@ -24,7 +24,6 @@ export function StatsCards() {
           axios.get("http://localhost:8000/get/orders/"),
         ]);
 
-        // Products
         setTotalProducts(productsRes.data.length);
         const lowStockProducts = productsRes.data.filter(
           (product: { stock_quantity: number }) => product.stock_quantity <= 10
@@ -74,7 +73,7 @@ export function StatsCards() {
       let start = 0;
       const end = value;
       const duration = 1500;
-      const increment = end / (duration / 16); // 60fps
+      const increment = end / (duration / 16);
       
       const timer = setInterval(() => {
         start += increment;
@@ -138,7 +137,6 @@ export function StatsCards() {
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
         className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-bl-full" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Inventory</CardTitle>
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50">
@@ -173,7 +171,6 @@ export function StatsCards() {
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
         className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-bl-full" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">Pending Orders</CardTitle>
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50">
@@ -214,9 +211,8 @@ export function StatsCards() {
       <MotionCard 
         variants={cardVariants}
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
-        className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30 overflow-hidden"
+        className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-500 dark:to-red-600 overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-500/10 to-rose-500/10 rounded-bl-full" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300">Low Stock Alerts</CardTitle>
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/50">
