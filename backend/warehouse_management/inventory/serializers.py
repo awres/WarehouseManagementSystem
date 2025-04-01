@@ -42,3 +42,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
      class Meta:
          model = OrderItem
          fields = ['id', 'order', 'product', 'quantity', 'price']
+
+class OrderUpdateSerializer(serializers.ModelSerializer):
+    customer_first_name = serializers.CharField(write_only=True)
+    customer_last_name = serializers.CharField(write_only=True)
+    
+    class Meta:
+        model = Order
+        fields = ['status', 'total', 'customer_first_name', 'customer_last_name']

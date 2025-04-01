@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -9,7 +11,9 @@ import {
   ClipboardList,
   Search,
   BarChart3,
-  Settings,
+  AlertTriangle,
+  X,
+  Save,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -22,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Order {
   id: number;
@@ -38,6 +43,15 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    customer_first_name: "",
+    customer_last_name: "",
+    status: "",
+    total: "",
+  });
 
   const fetchOrders = async () => {
     try {
@@ -74,19 +88,19 @@ export default function OrdersPage() {
 
   const getStatusBadgeClass = (status: string) => {
     let badgeClass = "";
-    const normalizedStatus = status.toLowerCase();
+    const normalizedStatus = status.toUpperCase();
 
     switch (normalizedStatus) {
-      case "pending":
+      case "PENDING":
         badgeClass = "border-2 border-blue-500 text-white bg-blue-500";
         break;
-      case "shipped":
+      case "SHIPPED":
         badgeClass = "border-2 border-green-500 text-white bg-green-500";
         break;
-      case "cancelled":
+      case "CANCELLED":
         badgeClass = "border-2 border-red-500 text-white bg-red-500";
         break;
-      case "processing":
+      case "PROCESSING":
         badgeClass = "border-2 border-yellow-500 text-white bg-yellow-500";
         break;
       default:
@@ -94,6 +108,117 @@ export default function OrdersPage() {
         break;
     }
     return badgeClass;
+  };
+
+  const confirmDelete = (id: number) => {
+    setSelectedOrderId(id);
+    setShowDeleteModal(true);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setSelectedOrderId(null);
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (selectedOrderId) {
+        await axios.delete(
+          `http://localhost:8000/delete/orders/${selectedOrderId}/`
+        );
+        setOrders(orders.filter((order) => order.id !== selectedOrderId));
+        setFilteredOrders(
+          filteredOrders.filter((order) => order.id !== selectedOrderId)
+        );
+        setShowDeleteModal(false);
+        setSelectedOrderId(null);
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+    }
+  };
+
+  const editOrder = (order: Order) => {
+    setSelectedOrderId(order.id);
+    setEditFormData({
+      customer_first_name: order.customer.first_name,
+      customer_last_name: order.customer.last_name,
+      status: order.status,
+      total: order.total.toString(),
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditInputChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = event.target;
+    setEditFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      if (selectedOrderId) {
+        await axios.put(
+          `http://localhost:8000/update/orders/${selectedOrderId}/`,
+          editFormData
+        );
+
+        // Update the orders state with the edited order
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === selectedOrderId
+              ? {
+                  ...order,
+                  customer: {
+                    first_name: editFormData.customer_first_name,
+                    last_name: editFormData.customer_last_name,
+                  },
+                  status: editFormData.status,
+                  total: Number.parseFloat(editFormData.total),
+                }
+              : order
+          )
+        );
+
+        // Update the filteredOrders state as well
+        setFilteredOrders((prevFilteredOrders) =>
+          prevFilteredOrders.map((order) =>
+            order.id === selectedOrderId
+              ? {
+                  ...order,
+                  customer: {
+                    first_name: editFormData.customer_first_name,
+                    last_name: editFormData.customer_last_name,
+                  },
+                  status: editFormData.status,
+                  total: Number.parseFloat(editFormData.total),
+                }
+              : order
+          )
+        );
+
+        setShowEditModal(false);
+        setSelectedOrderId(null);
+      }
+    } catch (error) {
+      console.error("Error updating order:", error);
+    }
+  };
+
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.8 },
   };
 
   return (
@@ -234,13 +359,24 @@ export default function OrdersPage() {
                       {new Date(order.order_date).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="bg-red-600 text-white hover:bg-red-700"
-                      >
-                        Cancel
-                      </Button>
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-black hover:bg-black hover:text-white transition-colors"
+                          onClick={() => editOrder(order)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                          onClick={() => confirmDelete(order.id)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -249,6 +385,159 @@ export default function OrdersPage() {
           </div>
         </main>
       </div>
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {showEditModal && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={backdropVariants}
+              onClick={() => setShowEditModal(false)}
+            />
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+            >
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md pointer-events-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <div className="bg-blue-100 p-2 rounded-full mr-3">
+                      <Save className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h2 className="text-xl font-bold">Edit Order</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">First Name</label>
+                      <Input
+                        name="customer_first_name"
+                        placeholder="First Name"
+                        value={editFormData.customer_first_name}
+                        onChange={handleEditInputChange}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Last Name</label>
+                      <Input
+                        name="customer_last_name"
+                        placeholder="Last Name"
+                        value={editFormData.customer_last_name}
+                        onChange={handleEditInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Status</label>
+                    <select
+                      name="status"
+                      value={editFormData.status}
+                      onChange={handleEditInputChange}
+                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="PENDING">PENDING</option>
+                      <option value="PROCESSING">PROCESSING</option>
+                      <option value="SHIPPED">SHIPPED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Total</label>
+                    <Input
+                      name="total"
+                      placeholder="0.00"
+                      type="number"
+                      value={editFormData.total}
+                      onChange={handleEditInputChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <Button
+                    onClick={handleEditSubmit}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={backdropVariants}
+              onClick={cancelDelete}
+            />
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+            >
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md pointer-events-auto">
+                <div className="flex flex-col items-center mb-6">
+                  <div className="bg-red-100 p-4 rounded-full mb-4">
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-center">
+                    Confirm Cancellation
+                  </h2>
+                  <p className="text-center mt-2 text-gray-600 dark:text-gray-300">
+                    Are you sure you want to cancel this order? This action
+                    cannot be undone.
+                  </p>
+                </div>
+
+                <div className="flex gap-4 mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={cancelDelete}
+                    className="w-1/2 border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                  >
+                    Go Back
+                  </Button>
+                  <Button
+                    onClick={handleDelete}
+                    className="w-1/2 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Cancel Order
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

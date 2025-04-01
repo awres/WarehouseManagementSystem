@@ -101,3 +101,90 @@ def delete_product(request, id):
     
     product.delete()
     return Response({"message": "Product deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['PUT'])
+def update_order(request, id):
+    try:
+        order = Order.objects.get(pk=id)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Extract customer data
+    customer_first_name = request.data.get('customer_first_name')
+    customer_last_name = request.data.get('customer_last_name')
+    
+    # Update customer information if provided
+    if customer_first_name and customer_last_name:
+        customer = order.customer
+        customer.first_name = customer_first_name
+        customer.last_name = customer_last_name
+        customer.save()
+    
+    # Update order status and ensure it's uppercase
+    if 'status' in request.data:
+        order.status = request.data.get('status').upper()
+    
+    # Convert total to decimal if provided
+    if 'total' in request.data:
+        try:
+            order.total = float(request.data.get('total'))
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid total value"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    order.save()
+    
+    # Return the updated order
+    serializer = OrdersSerializer(order)
+    return Response(serializer.data)
+
+
+
+
+@api_view(['DELETE'])
+def delete_order(request, id):
+    try:
+        order = Order.objects.get(pk=id)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    order.delete()
+    return Response({"message": "Order deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+def add_order(request):
+    if request.method == 'POST':
+        # Extract customer data
+        customer_data = request.data.get('customer', {})
+        
+        try:
+            # Try to find existing customer
+            customer = Customer.objects.get(
+                first_name=customer_data.get('first_name'),
+                last_name=customer_data.get('last_name')
+            )
+        except Customer.DoesNotExist:
+            # Create new customer if not found
+            customer_serializer = CustomerSerializer(data=customer_data)
+            if customer_serializer.is_valid():
+                customer = customer_serializer.save()
+            else:
+                return Response(customer_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get status and ensure it's uppercase
+        status_value = request.data.get('status', 'PENDING').upper()
+        
+        # Create order data
+        order_data = {
+            'customer': customer.id,
+            'status': status_value,
+            'total': request.data.get('total', 0),
+            'order_date': timezone.now()
+        }
+        
+        # Create the order
+        serializer = OrdersSerializer(data=order_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
