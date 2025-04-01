@@ -20,7 +20,7 @@ export function InventorySummary() {
       try {
         const response = await axios.get("http://localhost:8000/get/products/");
         console.log(response.data);
-        const lastFiveProducts = response.data.slice(-5);
+        const lastFiveProducts = response.data.slice(-6);
         setProducts(lastFiveProducts);
       } catch (error) {
         console.error("Error fetching product data:", error);
@@ -41,9 +41,9 @@ export function InventorySummary() {
     <div className="space-y-4">
       {products.length > 0 ? (
         products.map((product, index) => {
-          const stockQuantity = parseInt(product.stock_quantity, 10); // Zamieniamy na liczbę całkowitą
+          const stockQuantity = parseInt(product.stock_quantity, 10);
           const status = getStatus(stockQuantity);
-          const progressValue = Math.min((stockQuantity / 250) * 100, 100); // Maks 100%
+          const progressValue = Math.min((stockQuantity / 250) * 100, 100);
 
           return (
             <div key={product.id || index} className="flex flex-col space-y-2">

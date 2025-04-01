@@ -9,19 +9,16 @@ import {
   Clock3Icon,
   PackageIcon,
   ShieldAlertIcon,
-  TruckIcon,
   UserIcon,
+  DollarSign,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-
-const URL = "http://localhost:8000/"
 
 interface Order {
   id: number
@@ -57,7 +54,7 @@ export function RecentOrders() {
           status: order.status || "Pending",
           amount: typeof order.total === "number" ? order.total : Number.parseFloat(order.total || "0"),
         }))
-        .slice(-5) // Get only the last 5 orders
+        .slice(-5)
 
       setOrders(ordersData)
       setLoading(false)
@@ -74,191 +71,187 @@ export function RecentOrders() {
 
   const getStatusConfig = (status: string) => {
     const statusLower = status.toLowerCase()
-    switch (statusLower) {
-      case "completed":
-        return {
-          color: "bg-gradient-to-r from-emerald-500 to-green-500 text-white",
-          icon: <CheckCircle2Icon className="h-3.5 w-3.5" />,
-          shadowColor: "shadow-emerald-500/20",
-        }
-      case "processing":
-        return {
-          color: "bg-gradient-to-r from-blue-500 to-cyan-500 text-white",
-          icon: <Clock3Icon className="h-3.5 w-3.5" />,
-          shadowColor: "shadow-blue-500/20",
-        }
-      case "cancelled":
-        return {
-          color: "bg-gradient-to-r from-red-500 to-rose-500 text-white",
-          icon: <ShieldAlertIcon className="h-3.5 w-3.5" />,
-          shadowColor: "shadow-red-500/20",
-        }
-      case "shipped":
-        return {
-          color: "bg-gradient-to-r from-violet-500 to-purple-500 text-white",
-          icon: <TruckIcon className="h-3.5 w-3.5" />,
-          shadowColor: "shadow-purple-500/20",
-        }
-      default:
-        return {
-          color: "bg-gradient-to-r from-gray-500 to-slate-500 text-white",
-          icon: <Clock3Icon className="h-3.5 w-3.5" />,
-          shadowColor: "shadow-gray-500/20",
-        }
+    if (statusLower === "shipped" || statusLower === "completed") {
+      return {
+        bg: "",
+        border: "border-emerald-200 dark:border-emerald-800",
+        badge: "bg-gradient-to-r from-emerald-500 to-green-500 text-white",
+        icon: <CheckCircle2Icon className="h-3.5 w-3.5" />,
+        progressColor: "bg-gradient-to-r from-emerald-500 to-green-500",
+        iconColor: "text-emerald-600 dark:text-emerald-400",
+      }
+    } else if (statusLower === "cancelled") {
+      return {
+        bg: "",
+        border: "border-red-200 dark:border-red-800",
+        badge: "bg-gradient-to-r from-red-500 to-rose-500 text-white",
+        icon: <ShieldAlertIcon className="h-3.5 w-3.5" />,
+        progressColor: "bg-gradient-to-r from-red-500 to-rose-500",
+        iconColor: "text-red-600 dark:text-red-400",
+      }
+    } else if (statusLower === "processing") {
+      return {
+        bg: "",
+        border: "border-yellow-200 dark:border-yellow-800",
+        badge: "bg-gradient-to-r from-yellow-500 to-amber-500 text-white",
+        icon: <Clock3Icon className="h-3.5 w-3.5" />,
+        progressColor: "bg-gradient-to-r from-yellow-500 to-amber-500",
+        iconColor: "text-yellow-600 dark:text-yellow-400",
+      }
+    } else {
+      return {
+        bg: "",
+        border: "border-blue-200 dark:border-blue-800",
+        badge: "bg-gradient-to-r from-blue-500 to-indigo-500 text-white",
+        icon: <Clock3Icon className="h-3.5 w-3.5" />,
+        progressColor: "bg-gradient-to-r from-blue-500 to-indigo-500",
+        iconColor: "text-blue-600 dark:text-blue-400",
+      }
     }
   }
 
-  const MotionCard = motion(Card)
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  }
+
+  const item = {
+    hidden: { y: 10, opacity: 0 },
+    show: { y: 0, opacity: 1 },
+  }
 
   if (loading) {
     return (
-      <Card className="h-full border-0 shadow-lg bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent flex items-center gap-2">
-            <PackageIcon className="h-5 w-5 text-primary" />
-            Recent Orders
-          </CardTitle>
-        </CardHeader>
-        <div className="px-6 pb-4">
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent">
-            {[1, 2, 3].map((i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
-              >
-                <Card className="overflow-hidden border-0 shadow-md bg-card/50 backdrop-blur-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-20 bg-primary/10" />
-                        <Skeleton className="h-4 w-40 bg-primary/5" />
-                      </div>
-                      <div>
-                        <Skeleton className="h-8 w-20 bg-primary/10 rounded-full" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </Card>
+      <div className="space-y-2 p-3 rounded-lg border-0 shadow-lg bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm">
+
+
+        {[...Array(3)].map((_, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            className="overflow-hidden border-0 shadow-md bg-card/50 backdrop-blur-sm rounded-lg p-2"
+          >
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-32 bg-primary/5" />
+              <Skeleton className="h-6 w-16 bg-primary/10 rounded-full" />
+            </div>
+            <Skeleton className="h-1.5 w-full mt-2 bg-primary/5 rounded-full" />
+          </motion.div>
+        ))}
+      </div>
     )
   }
 
   if (error) {
     return (
-      <Card className="h-full border-0 shadow-lg bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent flex items-center gap-2">
-            <PackageIcon className="h-5 w-5 text-primary" />
-            Recent Orders
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground gap-4">
-            <ShieldAlertIcon className="h-12 w-12 text-red-500/70" />
-            <p className="text-center">Error loading orders: {error}</p>
-            <Button
-              variant="outline"
-              onClick={fetchOrders}
-              className="mt-2 border-primary/20 text-primary hover:bg-primary/10"
-            >
-              Try Again
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-3 rounded-lg border-0 shadow-lg bg-gradient-to-br from-background to-red-50/30 dark:from-background dark:to-red-950/10 backdrop-blur-sm">
+
+        <div className="flex items-center justify-center h-[100px] text-muted-foreground gap-2">
+          <ShieldAlertIcon className="h-6 w-6 text-red-500/70" />
+          <p className="text-center text-sm">Error loading orders</p>
+          <Button
+            variant="outline"
+            onClick={fetchOrders}
+            className="ml-2 border-primary/20 text-primary hover:bg-primary/10"
+            size="sm"
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card className="h-full border-0 shadow-lg bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent flex items-center gap-2">
-          <PackageIcon className="h-5 w-5 text-primary" />
-          Recent Orders
-        </CardTitle>
-      </CardHeader>
-      <div className="px-6 pb-4">
-        {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground gap-2">
-            <PackageIcon className="h-10 w-10 text-muted-foreground/50" />
-            <p>No recent orders found</p>
-          </div>
-        ) : (
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent">
-            {orders.map((order, index) => {
-              const statusConfig = getStatusConfig(order.status)
+    <motion.div
+      className="space-y-2 p-3 rounded-lg border-0 shadow-lg bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
 
-              return (
-                <MotionCard
-                  key={order.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  whileHover={{ y: -4 }}
-                  className={cn(
-                    "overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-card/50 backdrop-blur-sm",
-                    statusConfig.shadowColor,
-                  )}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="font-medium text-sm flex items-center gap-2">
-                        <motion.span
-                          whileHover={{ scale: 1.1 }}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold"
-                        >
-                          #{order.id}
-                        </motion.span>
-                        <span className="text-muted-foreground">Order</span>
+
+      {orders.length === 0 ? (
+        <div className="flex items-center justify-center h-[80px] text-muted-foreground">
+          <p className="text-sm">No recent orders found</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {orders.map((order, index) => {
+            const statusConfig = getStatusConfig(order.status)
+
+            return (
+              <motion.div
+                key={order.id}
+                className={cn(
+                  "rounded-lg border-0 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300",
+                  statusConfig.bg,
+                )}
+                variants={item}
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              >
+                <div className="p-2.5">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          "flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 shrink-0",
+                        )}
+                      >
+                        <UserIcon className={cn("h-3.5 w-3.5", statusConfig.iconColor)} />
                       </div>
+                      <div>
+                        <p className="font-medium text-sm truncate max-w-[120px]">{order.customer_name}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                          <CalendarIcon className="h-3 w-3" />
+                          {order.order_date}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
                       <Badge
                         className={cn(
-                          statusConfig.color,
-                          "font-medium px-3 py-1 text-xs rounded-full shadow-sm flex items-center gap-1.5",
+                          statusConfig.badge,
+                          "font-medium px-2 py-0.5 text-xs rounded-full shadow-sm flex items-center gap-1 mb-1",
                         )}
                       >
                         {statusConfig.icon}
                         {order.status}
                       </Badge>
+                      <p className="text-sm font-semibold flex items-center">
+                        <DollarSign className="h-3 w-3 mr-0.5" />
+                        {order.amount.toFixed(2)}
+                      </p>
                     </div>
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 shrink-0">
-                          <UserIcon className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{order.customer_name}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                            <CalendarIcon className="h-3 w-3" />
-                            {order.order_date}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          className="px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-primary/5"
-                        >
-                          <p className="font-bold text-lg bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                            ${order.amount.toFixed(2)}
-                          </p>
-                        </motion.div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </MotionCard>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    </Card>
+                  </div>
+
+                  <motion.div
+                    className="relative h-1.5 bg-muted/50 rounded-full overflow-hidden mt-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <motion.div
+                      className={`absolute top-0 left-0 h-full rounded-full ${statusConfig.progressColor}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 0.7, ease: "easeOut" }}
+                    />
+                  </motion.div>
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+      )}
+    </motion.div>
   )
 }
 
