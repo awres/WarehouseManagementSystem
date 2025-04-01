@@ -128,12 +128,7 @@ export function RecentOrders() {
   if (loading) {
     return (
       <div className="space-y-2 p-3 rounded-lg border-0 shadow-lg bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm">
-        <div className="flex items-center mb-2">
-          <PackageIcon className="h-4 w-4 mr-2 text-primary" />
-          <h3 className="font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Recent Orders
-          </h3>
-        </div>
+
 
         {[...Array(3)].map((_, index) => (
           <motion.div
@@ -157,12 +152,6 @@ export function RecentOrders() {
   if (error) {
     return (
       <div className="p-3 rounded-lg border-0 shadow-lg bg-gradient-to-br from-background to-red-50/30 dark:from-background dark:to-red-950/10 backdrop-blur-sm">
-        <div className="flex items-center mb-2">
-          <PackageIcon className="h-4 w-4 mr-2 text-primary" />
-          <h3 className="font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Recent Orders
-          </h3>
-        </div>
 
         <div className="flex items-center justify-center h-[100px] text-muted-foreground gap-2">
           <ShieldAlertIcon className="h-6 w-6 text-red-500/70" />
@@ -187,12 +176,7 @@ export function RecentOrders() {
       initial="hidden"
       animate="show"
     >
-      <div className="flex items-center mb-2">
-        <PackageIcon className="h-4 w-4 mr-2 text-primary" />
-        <h3 className="font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          Recent Orders
-        </h3>
-      </div>
+
 
       {orders.length === 0 ? (
         <div className="flex items-center justify-center h-[80px] text-muted-foreground">
