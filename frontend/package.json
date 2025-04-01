@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "concurrently \"next dev\" \"pnpm django\"",
     "django": "pnpm django-setup && pnpm django-run",
-    "django-setup": "cd ../backend/warehouse_management && if not exist venv (python -m venv venv && pip install -r requirements.txt)",
-    "django-run": "cd ../backend/warehouse_management && venv\\Scripts\\activate && python manage.py runserver 0.0.0.0:8000"
+    "django-setup": "cd ../backend/warehouse_management && if not exist venv (python -m venv venv && .\\venv\\Scripts\\activate && pip install -r requirements.txt) else if not exist venv\\Lib\\site-packages\\django (echo Django not found, installing... && .\\venv\\Scripts\\activate && pip install django)",
+    "django-run": "cd ../backend/warehouse_management && .\\venv\\Scripts\\activate && python manage.py runserver 0.0.0.0:8000"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
