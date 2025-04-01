@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
   Truck,
@@ -23,6 +23,7 @@ import {
   Layers,
   DollarSign,
   PackageCheck,
+  ArrowUpDown,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,10 @@ export default function InventoryPage() {
     barcode: "",
   });
   const [inventoryItems, setInventoryItems] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
 
   const fetchInventory = async () => {
     try {
@@ -215,6 +220,49 @@ export default function InventoryPage() {
     setShowDeleteModal(false);
     setItemToDelete(null);
   };
+
+  // Toggle sort direction
+  const toggleSort = () => {
+    if (sortDirection === null) {
+      setSortDirection("asc");
+    } else if (sortDirection === "asc") {
+      setSortDirection("desc");
+    } else {
+      setSortDirection(null);
+    }
+  };
+
+  // Filter and sort items
+  const filteredAndSortedItems = useMemo(() => {
+    // First filter items based on search query
+    let result = inventoryItems;
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.name.toLowerCase().includes(query) ||
+          item.sku.toLowerCase().includes(query) ||
+          (item.barcode && item.barcode.toLowerCase().includes(query)) ||
+          item.category.toLowerCase().includes(query) ||
+          item.stock_quantity.toString().includes(query) ||
+          item.price.toString().includes(query)
+      );
+    }
+
+    // Then sort if a sort direction is specified
+    if (sortDirection) {
+      result = [...result].sort((a, b) => {
+        if (sortDirection === "asc") {
+          return a.name.localeCompare(b.name);
+        } else {
+          return b.name.localeCompare(a.name);
+        }
+      });
+    }
+
+    return result;
+  }, [inventoryItems, searchQuery, sortDirection]);
 
   // Animation variants for modals
   const modalVariants = {
@@ -354,11 +402,34 @@ export default function InventoryPage() {
                   type="search"
                   placeholder="Search inventory..."
                   className="w-full bg-background pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-                <span className="sr-only">Filter</span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleSort}
+                className={
+                  sortDirection
+                    ? "bg-primary/10 border-primary text-primary"
+                    : ""
+                }
+              >
+                {sortDirection === "asc" ? (
+                  <ArrowUpDown className="h-4 w-4 rotate-180" />
+                ) : sortDirection === "desc" ? (
+                  <ArrowUpDown className="h-4 w-4" />
+                ) : (
+                  <Filter className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                  {sortDirection === null
+                    ? "Filter"
+                    : sortDirection === "asc"
+                    ? "Sort A-Z"
+                    : "Sort Z-A"}
+                </span>
               </Button>
             </div>
           </div>
@@ -402,53 +473,78 @@ export default function InventoryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inventoryItems.map((item, index) => (
-                  <TableRow key={`${item.id}-${index}`}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.sku}</TableCell>
-                    <TableCell>{item.barcode || "No Barcode"}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell>{item.stock_quantity}</TableCell>
-                    <TableCell>${item.price || "Unknown"}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          item.stock_quantity > 10
-                            ? "outline"
+                {filteredAndSortedItems.length > 0 ? (
+                  filteredAndSortedItems.map((item, index) => (
+                    <TableRow key={`${item.id}-${index}`}>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell>{item.sku}</TableCell>
+                      <TableCell>{item.barcode || "No Barcode"}</TableCell>
+                      <TableCell>{item.category}</TableCell>
+                      <TableCell>{item.stock_quantity}</TableCell>
+                      <TableCell>${item.price || "Unknown"}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            item.stock_quantity > 10
+                              ? "outline"
+                              : item.stock_quantity > 0
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
+                          {item.stock_quantity > 10
+                            ? "In Stock"
                             : item.stock_quantity > 0
-                            ? "secondary"
-                            : "destructive"
-                        }
-                      >
-                        {item.stock_quantity > 10
-                          ? "In Stock"
-                          : item.stock_quantity > 0
-                          ? "Low Stock"
-                          : "Out of Stock"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-black hover:bg-black hover:text-white transition-colors"
-                          onClick={() => handleEdit(item)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
-                          onClick={() => confirmDelete(item.id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                            ? "Low Stock"
+                            : "Out of Stock"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-black hover:bg-black hover:text-white transition-colors"
+                            onClick={() => handleEdit(item)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                            onClick={() => confirmDelete(item.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center">
+                      {searchQuery ? (
+                        <div className="flex flex-col items-center justify-center text-muted-foreground">
+                          <Search className="h-8 w-8 mb-2 opacity-50" />
+                          <p>No results found for "{searchQuery}"</p>
+                          <Button
+                            variant="link"
+                            onClick={() => setSearchQuery("")}
+                            className="mt-2"
+                          >
+                            Clear search
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-muted-foreground">
+                          <Package className="h-8 w-8 mb-2 opacity-50" />
+                          <p>No products found</p>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>
