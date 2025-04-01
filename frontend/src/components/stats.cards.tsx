@@ -13,7 +13,7 @@ export function StatsCards() {
   useEffect(() => {
     const fetchTotalProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/products/");
+        const response = await axios.get("http://localhost:8000/get/products/");
         setTotalProducts(response.data.length);
 
         const lowStockProducts = response.data.filter(
