@@ -11,7 +11,7 @@ import {
   Settings,
   RefreshCcw,
 } from "lucide-react";
-import { Package, Search, Filter, Plus, X } from "lucide-react";
+import { Package, Search, Filter, Plus, X, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,8 @@ interface Product {
 export default function InventoryPage() {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -165,14 +167,25 @@ export default function InventoryPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const confirmDelete = (id: number) => {
+    setItemToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (itemToDelete === null) return;
+
     try {
-      await axios.delete(`http://localhost:8000/delete/products/${id}/`);
+      await axios.delete(
+        `http://localhost:8000/delete/products/${itemToDelete}/`
+      );
       setMessage({
         type: "success",
         text: "Product deleted successfully!",
       });
       fetchInventory();
+      setShowDeleteModal(false);
+      setItemToDelete(null);
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error("Delete error:", error);
@@ -180,8 +193,14 @@ export default function InventoryPage() {
         type: "error",
         text: "Error deleting product.",
       });
+      setShowDeleteModal(false);
       setTimeout(() => setMessage(null), 3000);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -365,7 +384,7 @@ export default function InventoryPage() {
                           variant="ghost"
                           size="sm"
                           className="bg-red-600 text-white"
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => confirmDelete(item.id)}
                         >
                           Delete
                         </Button>
@@ -488,6 +507,39 @@ export default function InventoryPage() {
             <Button onClick={handleEditSubmit} className="w-full">
               Save Changes
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-2xl w-96">
+            <div className="flex flex-col items-center mb-4">
+              <AlertTriangle className="h-12 w-12 text-red-500 mb-2" />
+              <h2 className="text-lg font-bold text-center">
+                Confirm Deletion
+              </h2>
+              <p className="text-center mt-2">
+                Are you sure you want to delete this product? This action cannot
+                be undone.
+              </p>
+            </div>
+            <div className="flex justify-between mt-6">
+              <Button
+                variant="outline"
+                onClick={cancelDelete}
+                className="w-1/2 mr-2"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDelete}
+                className="w-1/2 ml-2 bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete
+              </Button>
+            </div>
           </div>
         </div>
       )}
