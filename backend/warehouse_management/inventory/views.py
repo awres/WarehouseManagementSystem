@@ -10,7 +10,7 @@ from .models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ProductSerializer, CustomerSerializer
+from .serializers import ProductSerializer, CustomerSerializer, OrdersSerializer
 
 @api_view(['GET'])
 def get_customers(request):
@@ -24,10 +24,12 @@ def get_products(request):
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
-def get_orders(response):
-    orders = list(Order.objects.values())
-    return JsonResponse(orders, safe=False)
 
+@api_view(['GET'])
+def get_orders(request):
+    orders = Order.objects.all()
+    serializer = OrdersSerializer(orders, many=True)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 def post_product(request):

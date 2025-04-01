@@ -66,7 +66,7 @@ export function RecentOrders() {
     try {
       setLoading(true);
       const customersMap = await fetchCustomers();
-      const res = await axios.get(`${URL}orders/`);
+      const res = await axios.get("http://localhost:8000/get/orders/");
 
       const ordersData = res.data
         .map((order: any) => {
