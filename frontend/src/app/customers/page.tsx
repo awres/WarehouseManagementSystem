@@ -124,21 +124,21 @@ export default function CustomersPage() {
           <nav className="grid gap-2 p-4 text-sm">
             <Link
               href="/"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 hover:text-foreground"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <BarChart3 className="h-4 w-4" />
               Dashboard
             </Link>
             <Link
               href="/inventory"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 hover:text-foreground"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <Package className="h-4 w-4" />
               Inventory
             </Link>
             <Link
               href="/orders"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 hover:text-foreground"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <ClipboardList className="h-4 w-4" />
               Orders
