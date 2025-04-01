@@ -11,7 +11,20 @@ from django.utils import timezone
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ProductSerializer, CustomerSerializer, OrdersSerializer
+from .serializers import ProductSerializer, CustomerSerializer, OrdersSerializer, ReturnSerializer, OrderItemSerializer
+
+
+@api_view(['GET'])
+def get_returns(request):
+     returns = Return.objects.all()
+     Serializer = ReturnSerializer(returns, many=True)
+     return Response(Serializer.data)
+ 
+@api_view(['GET'])
+def get_OrderItems(request):
+     orderItems = OrderItem.objects.all()
+     Serializer = OrderItemSerializer(orderItems, many=True)
+     return Response(Serializer.data)
 
 @api_view(['GET'])
 def get_customers(request):

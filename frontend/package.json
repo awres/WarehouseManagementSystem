@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev\" \"pnpm django\"",
-    "django": "cd ../backend/warehouse_management && python manage.py runserver 0.0.0.0:8000"
+    "django": "cd ../backend/warehouse_management && pnpm django-venv",
+    "django-venv": "cd ../backend/warehouse_management && python -m venv venv && .\\venv\\Scripts\\activate && python manage.py runserver 0.0.0.0:8000"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import Product, Customer, Order
+from .models import Product, Customer, Order, Return, OrderItem
 
 class ProductSerializer(serializers.ModelSerializer):
     # Remove read_only=True to allow updating these fields
     sku = serializers.CharField(required=False, allow_blank=True)
     barcode = serializers.CharField(required=False, allow_blank=True)
     stock_quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
-    id = serializers.IntegerField(read_only=True)  # Add id field for frontend
+    id = serializers.IntegerField(read_only=True)  
 
     class Meta:
         model = Product
@@ -29,3 +29,16 @@ class OrdersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'customer', 'order_date', 'status', 'total']
+
+        
+class ReturnSerializer(serializers.ModelSerializer):
+     id = serializers.IntegerField(read_only=True)  
+     class Meta:
+         model = Return
+         fields = ['id', 'status', 'order_item', 'return_date', 'notes']
+
+class OrderItemSerializer(serializers.ModelSerializer):
+     id = serializers.IntegerField(read_only=True)
+     class Meta:
+         model = OrderItem
+         fields = ['id', 'order', 'product', 'quantity', 'price']
