@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   X,
   Save,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -262,7 +263,8 @@ export default function OrdersPage() {
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <Button variant="outline" size="sm">
-            Settings
+            <Settings className="mr-2 h-4 w-4" />
+            <Link href="/settings">Settings</Link>
           </Button>
         </div>
       </header>

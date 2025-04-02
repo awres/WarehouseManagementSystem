@@ -191,7 +191,6 @@ export default function CustomersPage() {
                   <TableHead>Address</TableHead>
                   <TableHead>Created At</TableHead>
                   <TableHead>Updated At</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -207,15 +206,6 @@ export default function CustomersPage() {
                     </TableCell>
                     <TableCell>
                       {new Date(customer.updated_at).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="bg-red-600 text-white hover:bg-red-700"
-                      >
-                        Delete
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
