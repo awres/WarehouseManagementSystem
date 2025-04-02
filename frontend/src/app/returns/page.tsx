@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect, useMemo } from "react";
 import {
   Package,
   Truck,
@@ -10,8 +11,16 @@ import {
   Search,
   RefreshCcw,
   Filter,
-  MoreHorizontal,
   ArrowUpDown,
+  Calendar,
+  ChevronDown,
+  SlidersHorizontal,
+  Check,
+  X,
+  AlertCircle,
+  Clock,
+  FileText,
+  Package2,
 } from "lucide-react";
 
 import {
@@ -35,40 +44,36 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import axios from "axios";
-import { useState, useEffect } from "react";
-import { resourceUsage } from "process";
 
 function StatusBadge({ status }: { status: string }) {
   let variant: "outline" | "secondary" | "destructive" | "default" = "outline";
+  let statusText = status;
 
-  switch (status) {
+  switch (status.toUpperCase()) {
     case "PENDING":
       variant = "secondary";
+      statusText = "Pending";
       break;
-    case "APROVED":
+    case "APPROVED":
+    case "APROVED": // Handle typo in the API
       variant = "default";
+      statusText = "Approved";
       break;
     case "REJECTED":
       variant = "destructive";
+      statusText = "Rejected";
       break;
     default:
       variant = "outline";
   }
 
-  return <Badge variant={variant}>{status}</Badge>;
+  return <Badge variant={variant}>{statusText}</Badge>;
 }
 
 interface Return {
@@ -103,13 +108,20 @@ export default function Returns() {
   const [returns, setReturns] = useState<Return[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Sorting and filtering states
+  const [sortField, setSortField] = useState<string>("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     try {
       const res = await axios.get(`${URL}get/products`);
       setProducts(res.data);
     } catch (err) {
-      console.log("blad podczas fetchowania przedmiotów!!" + err);
+      console.log("Error fetching products: " + err);
     }
   };
 
@@ -118,7 +130,7 @@ export default function Returns() {
       const res = await axios.get(`${URL}get/orderitems/`);
       setItems(res.data);
     } catch (err) {
-      console.log("blad podczas pobierania orderItems" + err);
+      console.log("Error fetching order items: " + err);
     }
   };
 
@@ -127,24 +139,141 @@ export default function Returns() {
       const res = await axios.get(`${URL}get/returns/`);
       setReturns(res.data);
     } catch (err) {
-      console.log("błąd podczas pobierania danych!!!" + err);
+      console.log("Error fetching returns: " + err);
     }
   };
 
   const getProductById = (orderItemId: number) => {
     const orderItem = items.find((item) => item.id === orderItemId);
-    if (!orderItem) return "Brak produktu";
+    if (!orderItem) return "No product";
 
     const product = products.find((p) => p.id === orderItem.product);
-    return product ? product.name : "Brak produktu";
+    return product ? product.name : "No product";
   };
 
   useEffect(() => {
     fetchOrderItems();
     fetchProducts();
     fetchReturns();
-    console.log(returns);
   }, []);
+
+  // Handle sort
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  // Get unique statuses for filter
+  const statuses = useMemo(() => {
+    const uniqueStatuses = new Set<string>();
+    returns.forEach((returnItem) => {
+      if (returnItem.status)
+        uniqueStatuses.add(returnItem.status.toUpperCase());
+    });
+    return Array.from(uniqueStatuses);
+  }, [returns]);
+
+  // Filter and sort returns
+  const filteredAndSortedReturns = useMemo(() => {
+    // First filter returns based on search query and filters
+    let result = returns;
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (returnItem) =>
+          returnItem.id.toString().includes(query) ||
+          returnItem.status.toLowerCase().includes(query) ||
+          returnItem.notes.toLowerCase().includes(query) ||
+          getProductById(returnItem.order_item).toLowerCase().includes(query)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter) {
+      result = result.filter(
+        (returnItem) => returnItem.status.toUpperCase() === statusFilter
+      );
+    }
+
+    // Apply date filter
+    if (dateFilter) {
+      const today = new Date();
+      const todayStr = today.toISOString().split("T")[0];
+
+      switch (dateFilter) {
+        case "today":
+          result = result.filter((returnItem) =>
+            returnItem.return_date.startsWith(todayStr)
+          );
+          break;
+        case "this_week": {
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay());
+          result = result.filter(
+            (returnItem) => new Date(returnItem.return_date) >= weekStart
+          );
+          break;
+        }
+        case "this_month": {
+          const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+          result = result.filter(
+            (returnItem) => new Date(returnItem.return_date) >= monthStart
+          );
+          break;
+        }
+        case "last_30_days": {
+          const thirtyDaysAgo = new Date(today);
+          thirtyDaysAgo.setDate(today.getDate() - 30);
+          result = result.filter(
+            (returnItem) => new Date(returnItem.return_date) >= thirtyDaysAgo
+          );
+          break;
+        }
+      }
+    }
+
+    // Then sort
+    return [...result].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case "id":
+          comparison = a.id - b.id;
+          break;
+        case "order":
+          comparison = a.order_item - b.order_item;
+          break;
+        case "date":
+          comparison =
+            new Date(a.return_date).getTime() -
+            new Date(b.return_date).getTime();
+          break;
+        case "status":
+          comparison = a.status.localeCompare(b.status);
+          break;
+        default:
+          comparison =
+            new Date(a.return_date).getTime() -
+            new Date(b.return_date).getTime();
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [
+    returns,
+    searchQuery,
+    sortField,
+    sortDirection,
+    statusFilter,
+    dateFilter,
+    items,
+    products,
+  ]);
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -235,47 +364,231 @@ export default function Returns() {
         </aside>
         <main className="flex-1 p-6">
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">Returns Management</h1>
-              <p className="text-muted-foreground">
-                Track and process customer returns
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold">Returns Management</h1>
+                <p className="text-muted-foreground">
+                  Track and process customer returns
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="flex w-full max-w-sm items-center space-x-2">
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search returns..."
-                    className="w-full pl-9"
-                  />
-                </div>
-                <Button variant="outline" size="icon">
-                  <Filter className="h-4 w-4" />
-                  <span className="sr-only">Filter</span>
-                </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search returns..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-background pl-8"
+                />
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button>
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  Process Returns
-                </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <Filter className="mr-2 h-4 w-4" />
+                      Status
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuItem
+                      onClick={() => setStatusFilter(null)}
+                      className="flex items-center justify-between"
+                    >
+                      All Statuses
+                      {statusFilter === null && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {statuses.map((status) => (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => setStatusFilter(status)}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center">
+                          <div
+                            className={`w-2 h-2 rounded-full mr-2 ${
+                              status === "PENDING"
+                                ? "bg-amber-500"
+                                : status === "APPROVED" || status === "APROVED"
+                                ? "bg-green-500"
+                                : status === "REJECTED"
+                                ? "bg-red-500"
+                                : "bg-gray-500"
+                            }`}
+                          ></div>
+                          {status.charAt(0) + status.slice(1).toLowerCase()}
+                        </div>
+                        {statusFilter === status && (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Date
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter(null)}
+                      className="flex items-center justify-between"
+                    >
+                      All Time
+                      {dateFilter === null && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("today")}
+                      className="flex items-center justify-between"
+                    >
+                      Today
+                      {dateFilter === "today" && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("this_week")}
+                      className="flex items-center justify-between"
+                    >
+                      This Week
+                      {dateFilter === "this_week" && (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("this_month")}
+                      className="flex items-center justify-between"
+                    >
+                      This Month
+                      {dateFilter === "this_month" && (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("last_30_days")}
+                      className="flex items-center justify-between"
+                    >
+                      Last 30 Days
+                      {dateFilter === "last_30_days" && (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <SlidersHorizontal className="mr-2 h-4 w-4" />
+                      Sort
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[220px]">
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "date" && sortDirection === "desc"}
+                      onCheckedChange={() => {
+                        setSortField("date");
+                        setSortDirection("desc");
+                      }}
+                    >
+                      <Clock className="mr-2 h-4 w-4" />
+                      Newest First
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "date" && sortDirection === "asc"}
+                      onCheckedChange={() => {
+                        setSortField("date");
+                        setSortDirection("asc");
+                      }}
+                    >
+                      <Clock className="mr-2 h-4 w-4" />
+                      Oldest First
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "id" && sortDirection === "asc"}
+                      onCheckedChange={() => {
+                        setSortField("id");
+                        setSortDirection("asc");
+                      }}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Return ID (Low to High)
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "id" && sortDirection === "desc"}
+                      onCheckedChange={() => {
+                        setSortField("id");
+                        setSortDirection("desc");
+                      }}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Return ID (High to Low)
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
+
+            {/* Active filters display */}
+            {(statusFilter || dateFilter) && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {statusFilter && (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 px-3 py-1"
+                  >
+                    Status:{" "}
+                    {statusFilter.charAt(0) +
+                      statusFilter.slice(1).toLowerCase()}
+                    <X
+                      className="h-3 w-3 ml-1 cursor-pointer"
+                      onClick={() => setStatusFilter(null)}
+                    />
+                  </Badge>
+                )}
+                {dateFilter && (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 px-3 py-1"
+                  >
+                    {dateFilter === "today"
+                      ? "Today"
+                      : dateFilter === "this_week"
+                      ? "This Week"
+                      : dateFilter === "this_month"
+                      ? "This Month"
+                      : "Last 30 Days"}
+                    <X
+                      className="h-3 w-3 ml-1 cursor-pointer"
+                      onClick={() => setDateFilter(null)}
+                    />
+                  </Badge>
+                )}
+                {(statusFilter || dateFilter) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => {
+                      setStatusFilter(null);
+                      setDateFilter(null);
+                    }}
+                  >
+                    Clear all
+                  </Button>
+                )}
+              </div>
+            )}
 
             <Card>
               <CardHeader className="pb-3">
@@ -285,58 +598,162 @@ export default function Returns() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[120px]">
-                        <div className="flex items-center gap-1">
-                          Return ID
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-1">
-                          Order ID
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-1">
-                          Date
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-1">
-                          Status
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {returns.map((returnItem) => (
-                      <TableRow key={returnItem.id}>
-                        <TableCell className="font-medium">
-                          {returnItem.id}
-                        </TableCell>
-                        <TableCell>{returnItem.id}</TableCell>
-                        <TableCell>{returnItem.return_date}</TableCell>
-                        <TableCell>
-                          {getProductById(returnItem.order_item)}
-                        </TableCell>
-                        <TableCell>{returnItem.notes}</TableCell>
-                        <TableCell>
-                          <StatusBadge status={returnItem.status}></StatusBadge>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead
+                          className="w-[100px] font-medium cursor-pointer"
+                          onClick={() => handleSort("id")}
+                        >
+                          <div className="flex items-center">
+                            Return ID
+                            {sortField === "id" && (
+                              <ArrowUpDown
+                                className={`ml-1 h-4 w-4 ${
+                                  sortDirection === "desc" ? "rotate-180" : ""
+                                }`}
+                              />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead
+                          className="font-medium cursor-pointer"
+                          onClick={() => handleSort("order")}
+                        >
+                          <div className="flex items-center">
+                            Order ID
+                            {sortField === "order" && (
+                              <ArrowUpDown
+                                className={`ml-1 h-4 w-4 ${
+                                  sortDirection === "desc" ? "rotate-180" : ""
+                                }`}
+                              />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead
+                          className="font-medium cursor-pointer"
+                          onClick={() => handleSort("date")}
+                        >
+                          <div className="flex items-center">
+                            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Date
+                            {sortField === "date" && (
+                              <ArrowUpDown
+                                className={`ml-1 h-4 w-4 ${
+                                  sortDirection === "desc" ? "rotate-180" : ""
+                                }`}
+                              />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="font-medium">
+                          <div className="flex items-center">
+                            <Package2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Items
+                          </div>
+                        </TableHead>
+                        <TableHead className="font-medium">
+                          <div className="flex items-center">
+                            <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Description
+                          </div>
+                        </TableHead>
+                        <TableHead
+                          className="font-medium cursor-pointer"
+                          onClick={() => handleSort("status")}
+                        >
+                          <div className="flex items-center">
+                            <AlertCircle className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Status
+                            {sortField === "status" && (
+                              <ArrowUpDown
+                                className={`ml-1 h-4 w-4 ${
+                                  sortDirection === "desc" ? "rotate-180" : ""
+                                }`}
+                              />
+                            )}
+                          </div>
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAndSortedReturns.length > 0 ? (
+                        filteredAndSortedReturns.map((returnItem) => (
+                          <TableRow
+                            key={returnItem.id}
+                            className="hover:bg-muted/50 transition-colors"
+                          >
+                            <TableCell className="font-medium">
+                              <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                                #{returnItem.id}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                                #{returnItem.order_item}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {new Date(
+                                    returnItem.return_date
+                                  ).toLocaleDateString()}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(
+                                    returnItem.return_date
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">
+                                {getProductById(returnItem.order_item)}
+                              </div>
+                            </TableCell>
+                            <TableCell
+                              className="max-w-[200px] truncate"
+                              title={returnItem.notes}
+                            >
+                              {returnItem.notes || "No description"}
+                            </TableCell>
+                            <TableCell>
+                              <StatusBadge status={returnItem.status} />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            <div className="flex flex-col items-center justify-center text-muted-foreground">
+                              <RefreshCcw className="h-8 w-8 mb-2 opacity-50" />
+                              <p>No returns found</p>
+                              {(searchQuery || statusFilter || dateFilter) && (
+                                <Button
+                                  variant="link"
+                                  onClick={() => {
+                                    setSearchQuery("");
+                                    setStatusFilter(null);
+                                    setDateFilter(null);
+                                  }}
+                                  className="mt-2"
+                                >
+                                  Clear all filters
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </div>

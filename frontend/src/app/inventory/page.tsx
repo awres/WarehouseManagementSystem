@@ -10,8 +10,6 @@ import {
   BarChart3,
   Settings,
   RefreshCcw,
-} from "lucide-react";
-import {
   Package,
   Search,
   Filter,
@@ -24,6 +22,12 @@ import {
   DollarSign,
   PackageCheck,
   ArrowUpDown,
+  ChevronDown,
+  SlidersHorizontal,
+  Check,
+  Edit,
+  Trash2,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -38,6 +42,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
 
 interface Product {
   id: number;
@@ -83,9 +95,10 @@ export default function InventoryPage() {
   });
   const [inventoryItems, setInventoryItems] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
-    null
-  );
+  const [sortField, setSortField] = useState<string>("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [stockFilter, setStockFilter] = useState<string | null>(null);
 
   const fetchInventory = async () => {
     try {
@@ -221,20 +234,28 @@ export default function InventoryPage() {
     setItemToDelete(null);
   };
 
-  // Toggle sort direction
-  const toggleSort = () => {
-    if (sortDirection === null) {
-      setSortDirection("asc");
-    } else if (sortDirection === "asc") {
-      setSortDirection("desc");
+  // Handle sort
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortDirection(null);
+      setSortField(field);
+      setSortDirection("asc");
     }
   };
 
+  // Get unique categories for filter
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+    inventoryItems.forEach((item) => {
+      if (item.category) uniqueCategories.add(item.category);
+    });
+    return Array.from(uniqueCategories);
+  }, [inventoryItems]);
+
   // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
-    // First filter items based on search query
+    // First filter items based on search query and filters
     let result = inventoryItems;
 
     if (searchQuery) {
@@ -250,19 +271,59 @@ export default function InventoryPage() {
       );
     }
 
-    // Then sort if a sort direction is specified
-    if (sortDirection) {
-      result = [...result].sort((a, b) => {
-        if (sortDirection === "asc") {
-          return a.name.localeCompare(b.name);
-        } else {
-          return b.name.localeCompare(a.name);
-        }
-      });
+    // Apply category filter
+    if (categoryFilter) {
+      result = result.filter((item) => item.category === categoryFilter);
     }
 
-    return result;
-  }, [inventoryItems, searchQuery, sortDirection]);
+    // Apply stock filter
+    if (stockFilter) {
+      switch (stockFilter) {
+        case "in_stock":
+          result = result.filter((item) => item.stock_quantity > 10);
+          break;
+        case "low_stock":
+          result = result.filter(
+            (item) => item.stock_quantity > 0 && item.stock_quantity <= 10
+          );
+          break;
+        case "out_of_stock":
+          result = result.filter((item) => item.stock_quantity === 0);
+          break;
+      }
+    }
+
+    // Then sort
+    return [...result].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "category":
+          comparison = a.category.localeCompare(b.category);
+          break;
+        case "price":
+          comparison = a.price - b.price;
+          break;
+        case "stock":
+          comparison = a.stock_quantity - b.stock_quantity;
+          break;
+        default:
+          comparison = a.name.localeCompare(b.name);
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [
+    inventoryItems,
+    searchQuery,
+    sortField,
+    sortDirection,
+    categoryFilter,
+    stockFilter,
+  ]);
 
   // Animation variants for modals
   const modalVariants = {
@@ -290,6 +351,13 @@ export default function InventoryPage() {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
     exit: { opacity: 0 },
+  };
+
+  // Get stock status
+  const getStockStatus = (quantity: number) => {
+    if (quantity > 10) return "In Stock";
+    if (quantity > 0) return "Low Stock";
+    return "Out of Stock";
   };
 
   return (
@@ -395,8 +463,9 @@ export default function InventoryPage() {
                 Add Item
               </Button>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative flex-1 w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
@@ -406,31 +475,158 @@ export default function InventoryPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={toggleSort}
-                className={
-                  sortDirection
-                    ? "bg-primary/10 border-primary text-primary"
-                    : ""
-                }
-              >
-                {sortDirection === "asc" ? (
-                  <ArrowUpDown className="h-4 w-4 rotate-180" />
-                ) : sortDirection === "desc" ? (
-                  <ArrowUpDown className="h-4 w-4" />
-                ) : (
-                  <Filter className="h-4 w-4" />
-                )}
-                <span className="sr-only">
-                  {sortDirection === null
-                    ? "Filter"
-                    : sortDirection === "asc"
-                    ? "Sort A-Z"
-                    : "Sort Z-A"}
-                </span>
-              </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <Filter className="mr-2 h-4 w-4" />
+                      Category
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuItem
+                      onClick={() => setCategoryFilter(null)}
+                      className="flex items-center justify-between"
+                    >
+                      All Categories
+                      {categoryFilter === null && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {categories.map((category) => (
+                      <DropdownMenuItem
+                        key={category}
+                        onClick={() => setCategoryFilter(category)}
+                        className="flex items-center justify-between"
+                      >
+                        {category}
+                        {categoryFilter === category && (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <Layers className="mr-2 h-4 w-4" />
+                      Stock
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuItem
+                      onClick={() => setStockFilter(null)}
+                      className="flex items-center justify-between"
+                    >
+                      All Stock Levels
+                      {stockFilter === null && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setStockFilter("in_stock")}
+                      className="flex items-center justify-between"
+                    >
+                      In Stock
+                      {stockFilter === "in_stock" && (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setStockFilter("low_stock")}
+                      className="flex items-center justify-between"
+                    >
+                      Low Stock
+                      {stockFilter === "low_stock" && (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setStockFilter("out_of_stock")}
+                      className="flex items-center justify-between"
+                    >
+                      Out of Stock
+                      {stockFilter === "out_of_stock" && (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <SlidersHorizontal className="mr-2 h-4 w-4" />
+                      Sort
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "name" && sortDirection === "asc"}
+                      onCheckedChange={() => {
+                        setSortField("name");
+                        setSortDirection("asc");
+                      }}
+                    >
+                      Name (A-Z)
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "name" && sortDirection === "desc"}
+                      onCheckedChange={() => {
+                        setSortField("name");
+                        setSortDirection("desc");
+                      }}
+                    >
+                      Name (Z-A)
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "price" && sortDirection === "asc"}
+                      onCheckedChange={() => {
+                        setSortField("price");
+                        setSortDirection("asc");
+                      }}
+                    >
+                      Price (Low to High)
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={
+                        sortField === "price" && sortDirection === "desc"
+                      }
+                      onCheckedChange={() => {
+                        setSortField("price");
+                        setSortDirection("desc");
+                      }}
+                    >
+                      Price (High to Low)
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                      checked={sortField === "stock" && sortDirection === "asc"}
+                      onCheckedChange={() => {
+                        setSortField("stock");
+                        setSortDirection("asc");
+                      }}
+                    >
+                      Stock (Low to High)
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={
+                        sortField === "stock" && sortDirection === "desc"
+                      }
+                      onCheckedChange={() => {
+                        setSortField("stock");
+                        setSortDirection("desc");
+                      }}
+                    >
+                      Stock (High to Low)
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
 
@@ -458,95 +654,250 @@ export default function InventoryPage() {
             )}
           </AnimatePresence>
 
-          <div className="rounded-lg border mt-6 shadow-sm">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Barcode</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedItems.length > 0 ? (
-                  filteredAndSortedItems.map((item, index) => (
-                    <TableRow key={`${item.id}-${index}`}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{item.sku}</TableCell>
-                      <TableCell>{item.barcode || "No Barcode"}</TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell>{item.stock_quantity}</TableCell>
-                      <TableCell>${item.price || "Unknown"}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            item.stock_quantity > 10
-                              ? "outline"
-                              : item.stock_quantity > 0
-                              ? "secondary"
-                              : "destructive"
-                          }
+          {/* Active filters display */}
+          {(categoryFilter || stockFilter) && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {categoryFilter && (
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1 px-3 py-1"
+                >
+                  Category: {categoryFilter}
+                  <X
+                    className="h-3 w-3 ml-1 cursor-pointer"
+                    onClick={() => setCategoryFilter(null)}
+                  />
+                </Badge>
+              )}
+              {stockFilter && (
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1 px-3 py-1"
+                >
+                  {stockFilter === "in_stock"
+                    ? "In Stock"
+                    : stockFilter === "low_stock"
+                    ? "Low Stock"
+                    : "Out of Stock"}
+                  <X
+                    className="h-3 w-3 ml-1 cursor-pointer"
+                    onClick={() => setStockFilter(null)}
+                  />
+                </Badge>
+              )}
+              {(categoryFilter || stockFilter) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => {
+                    setCategoryFilter(null);
+                    setStockFilter(null);
+                  }}
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+          )}
+
+          <div className="rounded-lg border mt-6 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead
+                      className="font-medium cursor-pointer"
+                      onClick={() => handleSort("name")}
+                    >
+                      <div className="flex items-center">
+                        Name
+                        {sortField === "name" && (
+                          <ArrowUpDown
+                            className={`ml-1 h-4 w-4 ${
+                              sortDirection === "desc" ? "rotate-180" : ""
+                            }`}
+                          />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-medium">SKU</TableHead>
+                    <TableHead className="font-medium">Barcode</TableHead>
+                    <TableHead
+                      className="font-medium cursor-pointer"
+                      onClick={() => handleSort("category")}
+                    >
+                      <div className="flex items-center">
+                        Category
+                        {sortField === "category" && (
+                          <ArrowUpDown
+                            className={`ml-1 h-4 w-4 ${
+                              sortDirection === "desc" ? "rotate-180" : ""
+                            }`}
+                          />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="font-medium cursor-pointer"
+                      onClick={() => handleSort("stock")}
+                    >
+                      <div className="flex items-center">
+                        Quantity
+                        {sortField === "stock" && (
+                          <ArrowUpDown
+                            className={`ml-1 h-4 w-4 ${
+                              sortDirection === "desc" ? "rotate-180" : ""
+                            }`}
+                          />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="font-medium cursor-pointer"
+                      onClick={() => handleSort("price")}
+                    >
+                      <div className="flex items-center">
+                        Price
+                        {sortField === "price" && (
+                          <ArrowUpDown
+                            className={`ml-1 h-4 w-4 ${
+                              sortDirection === "desc" ? "rotate-180" : ""
+                            }`}
+                          />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-medium">Status</TableHead>
+                    <TableHead className="text-right font-medium">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedItems.length > 0 ? (
+                    filteredAndSortedItems.map((item, index) => {
+                      const status = getStockStatus(item.stock_quantity);
+                      return (
+                        <TableRow
+                          key={`${item.id}-${index}`}
+                          className="hover:bg-muted/50 transition-colors"
                         >
-                          {item.stock_quantity > 10
-                            ? "In Stock"
-                            : item.stock_quantity > 0
-                            ? "Low Stock"
-                            : "Out of Stock"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-black hover:bg-black hover:text-white transition-colors"
-                            onClick={() => handleEdit(item)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
-                            onClick={() => confirmDelete(item.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                          <TableCell className="font-medium">
+                            {item.name}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                              {item.sku}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {item.barcode ? (
+                              <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                                {item.barcode}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                No Barcode
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-normal">
+                              {item.category}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">
+                              {item.stock_quantity}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">${item.price}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                status === "In Stock"
+                                  ? "outline"
+                                  : status === "Low Stock"
+                                  ? "secondary"
+                                  : "destructive"
+                              }
+                              className={
+                                status === "In Stock"
+                                  ? "bg-green-100 text-green-800 border-green-200"
+                                  : status === "Low Stock"
+                                  ? "bg-amber-100 text-amber-800 border-amber-200"
+                                  : "bg-red-100 text-red-800 border-red-200"
+                              }
+                            >
+                              {status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleEdit(item)}
+                                title="Edit Item"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                onClick={() => confirmDelete(item.id)}
+                                title="Delete Item"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} className="h-24 text-center">
+                        {searchQuery || categoryFilter || stockFilter ? (
+                          <div className="flex flex-col items-center justify-center text-muted-foreground">
+                            <Search className="h-8 w-8 mb-2 opacity-50" />
+                            <p>No matching products found</p>
+                            <Button
+                              variant="link"
+                              onClick={() => {
+                                setSearchQuery("");
+                                setCategoryFilter(null);
+                                setStockFilter(null);
+                              }}
+                              className="mt-2"
+                            >
+                              Clear all filters
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-muted-foreground">
+                            <Package className="h-8 w-8 mb-2 opacity-50" />
+                            <p>No products found</p>
+                            <Button
+                              variant="link"
+                              onClick={() => setShowModal(true)}
+                              className="mt-2"
+                            >
+                              Add your first product
+                            </Button>
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
-                      {searchQuery ? (
-                        <div className="flex flex-col items-center justify-center text-muted-foreground">
-                          <Search className="h-8 w-8 mb-2 opacity-50" />
-                          <p>No results found for "{searchQuery}"</p>
-                          <Button
-                            variant="link"
-                            onClick={() => setSearchQuery("")}
-                            className="mt-2"
-                          >
-                            Clear search
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-muted-foreground">
-                          <Package className="h-8 w-8 mb-2 opacity-50" />
-                          <p>No products found</p>
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </main>
       </div>
