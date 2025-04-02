@@ -1,7 +1,5 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.utils.dateparse import parse_datetime
-import datetime
 from .models import Customer
 from .models import Product
 from .models import Role
@@ -9,10 +7,24 @@ from .models import Order
 from .models import OrderItem
 from .models import Return
 from .models import User
+from django.utils import timezone
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ProductSerializer, CustomerSerializer
+from .serializers import ProductSerializer, CustomerSerializer, OrdersSerializer, ReturnSerializer, OrderItemSerializer
+
+
+@api_view(['GET'])
+def get_returns(request):
+     returns = Return.objects.all()
+     Serializer = ReturnSerializer(returns, many=True)
+     return Response(Serializer.data)
+ 
+@api_view(['GET'])
+def get_OrderItems(request):
+     orderItems = OrderItem.objects.all()
+     Serializer = OrderItemSerializer(orderItems, many=True)
+     return Response(Serializer.data)
 
 @api_view(['GET'])
 def get_customers(request):
@@ -27,29 +39,14 @@ def get_products(request):
     return Response(serializer.data)
 
 
-def get_roles(response):
-    roles = list(Role.objects.values())
-    return JsonResponse(roles, safe=False)
-
-def get_orders(response):
-    orders = list(Order.objects.values())
-    return JsonResponse(orders, safe=False)
-
-def get_orderItems(response):
-    orderitems = list(OrderItem.objects.values())
-    return JsonResponse(orderitems, safe=False)
-
-def get_returns(response):
-    returns = list(Return.objects.values())
-    return JsonResponse(returns, safe=False)
-
-def get_users(response):
-    users = list(User.objects.values())
-    return JsonResponse(users, safe=False)
-
+@api_view(['GET'])
+def get_orders(request):
+    orders = Order.objects.all()
+    serializer = OrdersSerializer(orders, many=True)
+    return Response(serializer.data)
 
 @api_view(['POST'])
-def add_product(request):
+def post_product(request):
     if request.method == 'POST':
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
@@ -66,36 +63,128 @@ def add_order(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-def get_orders_by_customer(request, customer_id):
+@api_view(['PUT'])
+def update_customer(request, id):
     try:
-        orders = Order.objects.filter(customer_id=customer_id).select_related('customer').values(
-            'id', 'order_date', 'status', 'total', 
-            'customer__first_name', 'customer__last_name'
-        )
-
-        orders_list = []
-        for order in orders:
-            formatted_date = "Nieprawidłowa data"
-            if isinstance(order['order_date'], datetime.datetime):
-                formatted_date = order['order_date'].strftime("%Y/%m/%d %H:%M")
-            else:
-                parsed_date = parse_datetime(order['order_date'])
-                if parsed_date:
-                    formatted_date = parsed_date.strftime("%Y/%m/%d %H:%M")
-
-            order_data = {
-                'id': order['id'],
-                'customer_name': f"{order['customer__first_name']} {order['customer__last_name']}",
-                'order_date': formatted_date,
-                'status': order['status'],
-                'total': order['total']
-            }
-            orders_list.append(order_data)
-
-        return JsonResponse(orders_list, safe=False)
-
+        customer = Customer.objects.get(pk=id)
     except Customer.DoesNotExist:
-        return JsonResponse({"error": "Customer not found"}, status=404)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = CustomerSerializer(customer, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save(updated_at=timezone.now())  # ✅ Ensure updated_at is set
+        return Response(serializer.data)
+
+    print(serializer.errors)  # ✅ Print validation errors in the console
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+def update_product(request, id):
+    try:
+        product = Product.objects.get(pk=id)
+    except Product.DoesNotExist:
+        return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = ProductSerializer(product, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+def delete_product(request, id):
+    try:
+        product = Product.objects.get(pk=id)
+    except Product.DoesNotExist:
+        return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    product.delete()
+    return Response({"message": "Product deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['PUT'])
+def update_order(request, id):
+    try:
+        order = Order.objects.get(pk=id)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Extract customer data
+    customer_first_name = request.data.get('customer_first_name')
+    customer_last_name = request.data.get('customer_last_name')
+    
+    # Update customer information if provided
+    if customer_first_name and customer_last_name:
+        customer = order.customer
+        customer.first_name = customer_first_name
+        customer.last_name = customer_last_name
+        customer.save()
+    
+    # Update order status and ensure it's uppercase
+    if 'status' in request.data:
+        order.status = request.data.get('status').upper()
+    
+    # Convert total to decimal if provided
+    if 'total' in request.data:
+        try:
+            order.total = float(request.data.get('total'))
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid total value"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    order.save()
+    
+    # Return the updated order
+    serializer = OrdersSerializer(order)
+    return Response(serializer.data)
+
+
+
+
+@api_view(['DELETE'])
+def delete_order(request, id):
+    try:
+        order = Order.objects.get(pk=id)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    order.delete()
+    return Response({"message": "Order deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+def add_order(request):
+    if request.method == 'POST':
+        # Extract customer data
+        customer_data = request.data.get('customer', {})
+        
+        try:
+            # Try to find existing customer
+            customer = Customer.objects.get(
+                first_name=customer_data.get('first_name'),
+                last_name=customer_data.get('last_name')
+            )
+        except Customer.DoesNotExist:
+            # Create new customer if not found
+            customer_serializer = CustomerSerializer(data=customer_data)
+            if customer_serializer.is_valid():
+                customer = customer_serializer.save()
+            else:
+                return Response(customer_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get status and ensure it's uppercase
+        status_value = request.data.get('status', 'PENDING').upper()
+        
+        # Create order data
+        order_data = {
+            'customer': customer.id,
+            'status': status_value,
+            'total': request.data.get('total', 0),
+            'order_date': timezone.now()
+        }
+        
+        # Create the order
+        serializer = OrdersSerializer(data=order_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
