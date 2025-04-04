@@ -28,6 +28,7 @@ import {
   Clock,
   DollarSign,
   User,
+  LineChart,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -363,6 +364,12 @@ export default function OrdersPage() {
           >
             Returns
           </Link>
+          <Link
+            href="/analytics"
+            className="text-muted-foreground transition-colors hover:text-foreground/80"
+          >
+            Analytics
+          </Link>
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <Button variant="outline" size="sm">
@@ -409,6 +416,13 @@ export default function OrdersPage() {
             >
               <RefreshCcw className="h-4 w-4" />
               Returns
+            </Link>
+            <Link
+              href="/analytics"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <LineChart className="h-4 w-4" />
+              Analytics
             </Link>
           </nav>
         </aside>
