@@ -303,10 +303,10 @@ export async function getPriceChangeImpactData(): Promise<
 
     return {
       name: product.name,
-      beforePrice: originalPrice,
-      afterPrice: discountedPrice,
-      beforeSales: originalSales,
-      afterSales: estimatedSalesIncrease,
+      beforePrice: Math.round(originalPrice),
+      afterPrice: Math.round(discountedPrice),
+      beforeSales: Math.round(originalSales), 
+      afterSales: Math.round(estimatedSalesIncrease),
     };
   });
 }
