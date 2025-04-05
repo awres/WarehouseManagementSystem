@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useState, useEffect, useMemo } from "react";
 import {
   Package,
@@ -321,8 +322,8 @@ export default function Returns() {
             Analytics
           </Link>
         </nav>
-
         <div className="ml-auto flex items-center gap-4">
+          <ThemeToggle />
           <Button variant="outline" size="sm">
             <Settings className="mr-2 h-4 w-4" />
             <Link href="/settings">Settings</Link>

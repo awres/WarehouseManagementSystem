@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Truck,
   ClipboardList,
@@ -231,6 +232,7 @@ export default function CustomersPage() {
           </Link>
         </nav>
         <div className="ml-auto flex items-center gap-4">
+          <ThemeToggle />
           <Button variant="outline" size="sm">
             <Settings className="mr-2 h-4 w-4" />
             <Link href="/settings">Settings</Link>
