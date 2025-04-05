@@ -978,8 +978,13 @@ export default function InventoryPage() {
                         className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         <option value="">Select Category</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="furniture">Furniture</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Home Appliances">Home Appliances</option>
+                        <option value="Automotive">Automotive</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Human">Human</option>
+                        <option value="Accessories">Accessories</option>
+                        
                       </select>
                     </div>
                   </div>
@@ -1123,8 +1128,12 @@ export default function InventoryPage() {
                         className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select Category</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="furniture">Furniture</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Home Appliances">Home Appliances</option>
+                        <option value="Automotive">Automotive</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Human">Human</option>
+                        <option value="Accessories">Accessories</option>
                       </select>
                     </div>
                   </div>
