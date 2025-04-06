@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Customer, Order, Return, OrderItem
+from .models import Product, Customer, Order, Return, OrderItem, Role
 
 class ProductSerializer(serializers.ModelSerializer):
     # Remove read_only=True to allow updating these fields
@@ -50,3 +50,8 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['status', 'total', 'customer_first_name', 'customer_last_name']
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['id', 'role_name']  # Zwracamy id i name roli

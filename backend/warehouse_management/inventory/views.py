@@ -11,7 +11,8 @@ from django.utils import timezone
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ProductSerializer, CustomerSerializer, OrdersSerializer, ReturnSerializer, OrderItemSerializer
+from .serializers import ProductSerializer, CustomerSerializer, OrdersSerializer, ReturnSerializer, OrderItemSerializer, RoleSerializer
+
 
 
 @api_view(['GET'])
@@ -186,5 +187,14 @@ def add_order(request):
         serializer = OrdersSerializer(data=order_data)
         if serializer.is_valid():
             serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+def create_role(request):
+    if request.method == 'POST':
+        serializer = RoleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # Zapisanie roli w bazie
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

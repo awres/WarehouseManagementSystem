@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from inventory.views import (
     get_products, get_customers, post_product, get_orders, update_order, delete_order,
-    update_product, delete_product, add_order, update_customer, get_returns, get_OrderItems 
+    update_product, delete_product, add_order, update_customer, get_returns, get_OrderItems, create_role
 )
 
 urlpatterns = [
@@ -18,4 +18,5 @@ urlpatterns = [
     path('get/orderitems/', get_OrderItems, name='get_returns'),
 path('update/orders/<int:id>/', update_order, name='update_order'),
 path('delete/orders/<int:id>/', delete_order, name='delete_order'),
+path('api/roles/', create_role, name='create_role'),
 ]
