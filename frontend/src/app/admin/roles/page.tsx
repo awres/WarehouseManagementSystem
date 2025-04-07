@@ -202,16 +202,35 @@ const sortRoles = (roles: Role[]) => {
         </p>
       </div>
 
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
-        <div className="relative flex-1 max-w-sm">
-          <Input
-            type="search"
-            placeholder="Search roles..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border-gray-300 shadow-sm rounded-md"
-          />
-        </div>
+ {/* Mini dashboard */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div className="bg-white p-6 rounded-lg shadow-lg border">
+    <p className="text-sm text-gray-500 mb-1">Total Roles</p>
+    <p className="text-3xl font-semibold">{roles.length}</p>
+  </div>
+  <div className="bg-white p-6 rounded-lg shadow-lg border">
+    <p className="text-sm text-gray-500 mb-1">Last Added Role</p>
+    <p className="text-xl font-medium">
+      {roles.length > 0
+        ? [...roles].sort((a, b) => b.id - a.id)[0].role_name
+        : "None"}
+    </p>
+  </div>
+</div>
+
+
+{/* Search + Add button */}
+<div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md mt-4">
+  <div className="relative flex-1 max-w-sm">
+    <Input
+      type="search"
+      placeholder="Search roles..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="border-gray-300 shadow-sm rounded-md"
+    />
+  </div>
+
 
         <Dialog
           open={isAddRoleOpen}
@@ -259,59 +278,58 @@ const sortRoles = (roles: Role[]) => {
       </div>
 
       <div className="overflow-x-auto bg-white p-4 rounded-lg shadow-md">
-        <Table>
-        <TableHeader>
-  <TableRow>
-    <TableHead
-      className="text-left font-semibold text-gray-700 cursor-pointer"
-      onClick={() => handleSort("id")}
-    >
-      ID {sortKey === "id" && (sortDirection === "asc" ? "↑" : "↓")}
-    </TableHead>
-    <TableHead
-      className="text-left font-semibold text-gray-700 cursor-pointer"
-      onClick={() => handleSort("role_name")}
-    >
-      Role Name {sortKey === "role_name" && (sortDirection === "asc" ? "↑" : "↓")}
-    </TableHead>
-    <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
-  </TableRow>
-</TableHeader>
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead
+          className="text-left font-semibold text-gray-700 cursor-pointer py-3 px-4 hover:bg-gray-100 transition-colors duration-300"
+          onClick={() => handleSort("id")}
+        >
+          ID {sortKey === "id" && (sortDirection === "asc" ? "↑" : "↓")}
+        </TableHead>
+        <TableHead
+          className="text-left font-semibold text-gray-700 cursor-pointer py-3 px-4 hover:bg-gray-100 transition-colors duration-300"
+          onClick={() => handleSort("role_name")}
+        >
+          Role Name {sortKey === "role_name" && (sortDirection === "asc" ? "↑" : "↓")}
+        </TableHead>
+        <TableHead className="text-right font-semibold text-gray-700 py-3 px-4">
+          Actions
+        </TableHead>
+      </TableRow>
+    </TableHeader>
 
-<TableBody>
-  {sortRoles(filteredRoles).map((role) => (
-    <TableRow key={role.id}>
-      <TableCell className="font-mono text-xs bg-muted px-2 py-1 rounded">
-        #{role.id}
-      </TableCell>
-      <TableCell className="font-medium">{role.role_name}</TableCell>
-      <TableCell className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="px-2 py-1">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleEditRole(role.id, role.role_name)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleDeleteRoleDialogOpen(role.id)}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
-
-
-        </Table>
-      </div>
-
+    <TableBody>
+      {sortRoles(filteredRoles).map((role) => (
+        <TableRow key={role.id} className="hover:bg-gray-50 transition-colors duration-300">
+          <TableCell className="font-mono text-xs bg-muted px-4 py-2 rounded">
+            #{role.id}
+          </TableCell>
+          <TableCell className="font-medium py-3 px-4">{role.role_name}</TableCell>
+          <TableCell className="text-right py-3 px-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors">
+                  <MoreHorizontal className="h-5 w-5 text-gray-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleEditRole(role.id, role.role_name)}>
+                  <Edit className="mr-2 h-4 w-4 text-gray-600" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDeleteRoleDialogOpen(role.id)}>
+                  <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</div>
       <Dialog open={editRoleId !== null} onOpenChange={(open) => setEditRoleId(open ? editRoleId : null)}>
   <DialogContent>
     <DialogHeader>
