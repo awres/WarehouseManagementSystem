@@ -198,3 +198,35 @@ def create_role(request):
             serializer.save()  # Zapisanie roli w bazie
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def get_roles(request):
+    roles = Role.objects.all()  # Pobierz wszystkie role
+    serializer = RoleSerializer(roles, many=True)  # Serializuj dane
+    return Response(serializer.data)  # Zwróć dane w odpowiedzi
+
+
+@api_view(['PUT'])
+def update_role(request, id):
+    try:
+        role = Role.objects.get(pk=id)
+    except Role.DoesNotExist:
+        return Response({"error": "Role not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Serializuj dane i zaktualizuj rolę
+    serializer = RoleSerializer(role, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+def delete_role(request, id):
+    try:
+        role = Role.objects.get(pk=id)
+    except Role.DoesNotExist:
+        return Response({"error": "Role not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    role.delete()
+    return Response({"message": "Role deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from inventory.views import (
     get_products, get_customers, post_product, get_orders, update_order, delete_order,
-    update_product, delete_product, add_order, update_customer, get_returns, get_OrderItems, create_role
+    update_product, delete_product, add_order, update_customer, get_returns, get_OrderItems, create_role, get_roles, update_role, delete_role
 )
 
 urlpatterns = [
@@ -16,7 +16,11 @@ urlpatterns = [
     path('update/customers/<int:id>/', update_customer, name='update_customer'), 
     path('get/returns/', get_returns, name='get_returns'),
     path('get/orderitems/', get_OrderItems, name='get_returns'),
-path('update/orders/<int:id>/', update_order, name='update_order'),
-path('delete/orders/<int:id>/', delete_order, name='delete_order'),
-path('api/roles/', create_role, name='create_role'),
+    path('update/orders/<int:id>/', update_order, name='update_order'),
+    path('delete/orders/<int:id>/', delete_order, name='delete_order'),
+    path('api/roles/', create_role, name='create_role'),
+    path('api/roles/list/', get_roles, name='get_roles'),
+    path('api/roles/<int:id>/', update_role, name='update_role'),
+    path('api/roles/delete/<int:id>/', delete_role, name='delete_role'),
+
 ]
