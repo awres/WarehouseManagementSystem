@@ -64,20 +64,22 @@ def add_order(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['PUT'])
+@api_view(['PUT', 'PATCH'])
 def update_customer(request, id):
     try:
         customer = Customer.objects.get(pk=id)
     except Customer.DoesNotExist:
         return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = CustomerSerializer(customer, data=request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save(updated_at=timezone.now())  # ✅ Ensure updated_at is set
-        return Response(serializer.data)
+    partial = request.method == 'PATCH'  # True for PATCH, False for PUT
+    serializer = CustomerSerializer(customer, data=request.data, partial=partial)
 
-    print(serializer.errors)  # ✅ Print validation errors in the console
+    if serializer.is_valid():
+        serializer.save(updated_at=timezone.now())
+        return Response(serializer.data)
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['PUT'])

@@ -5,7 +5,15 @@ import { useRouter, usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import React from "react";
+import type React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 // Define the Customer type
 type Customer = {
@@ -31,7 +39,7 @@ export default function AdminLayout({
   const [searchQuery, setSearchQuery] = useState("");
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<Customer | null>(null);
 
   useEffect(() => {
@@ -75,8 +83,8 @@ export default function AdminLayout({
   };
 
   const handleEditClick = (customer: Customer) => {
-    setEditingCustomer(customer);
     setEditFormData({ ...customer });
+    setIsEditDialogOpen(true);
   };
 
   const handleEditChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,46 +97,50 @@ export default function AdminLayout({
   };
 
   const handleSaveChanges = async () => {
-    if (editFormData) {
-      try {
-        const response = await fetch(
-          `http://localhost:8000/update/customers/${editFormData.id}/`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              first_name: editFormData.first_name,
-              last_name: editFormData.last_name,
-              email: editFormData.email,
-              phone: editFormData.phone,
-              address: editFormData.address,
-              updated_at: new Date().toISOString(),
-            }),
-          }
-        );
+    if (!editFormData) return;
 
-        if (response.ok) {
-          const updatedCustomer = await response.json();
-
-          setCustomers((prevCustomers) =>
-            prevCustomers.map((customer) =>
-              customer.id === updatedCustomer.id ? updatedCustomer : customer
-            )
-          );
-
-          setEditingCustomer(null);
-          setEditFormData(null);
-
-          alert("Customer updated successfully! ✅");
-        } else {
-          alert("Failed to update customer ❌");
+    try {
+      const response = await fetch(
+        `http://localhost:8000/update/customers/${editFormData.id}/`,
+        {
+          method: "PATCH", // use PATCH if backend supports partial updates
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            first_name: editFormData.first_name,
+            last_name: editFormData.last_name,
+            email: editFormData.email,
+            phone: editFormData.phone,
+            address: editFormData.address,
+            updated_at: new Date().toISOString(),
+          }),
         }
-      } catch (error) {
-        console.error("Error saving customer data:", error);
-        alert("Error updating customer ❌");
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error:", errorText);
+        alert("Failed to update customer ❌");
+        return;
       }
+
+      // Try parsing returned customer object
+      const updatedCustomer = await response.json();
+
+      setCustomers((prev) =>
+        prev.map((c) => (c.id === updatedCustomer.id ? updatedCustomer : c))
+      );
+      setFilteredCustomers((prev) =>
+        prev.map((c) => (c.id === updatedCustomer.id ? updatedCustomer : c))
+      );
+
+      setIsEditDialogOpen(false);
+      setEditFormData(null);
+      alert("Customer updated successfully! ✅");
+    } catch (error) {
+      console.error("Error saving customer data:", error);
+      alert("Error updating customer ❌");
     }
   };
 
@@ -172,113 +184,120 @@ export default function AdminLayout({
           </thead>
           <tbody>
             {filteredCustomers.map((customer) => (
-              <React.Fragment key={customer.id}>
-                <tr>
-                  <td className="px-4 py-2">{customer.id}</td>
-                  <td className="px-4 py-2">{`${customer.first_name} ${customer.last_name}`}</td>
-                  <td className="px-4 py-2">{customer.email}</td>
-                  <td className="px-4 py-2">{customer.phone}</td>
-                  <td className="px-4 py-2">{customer.address}</td>
-                  <td className="px-4 py-2">
-                    {new Date(customer.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-2">
-                    {new Date(customer.updated_at).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditClick(customer)}
-                    >
-                      Edit
-                    </Button>
-                  </td>
-                </tr>
-
-                {/* Wiersz edycji klienta */}
-                {editingCustomer?.id === customer.id && (
-                  <tr className="bg-gray-200">
-                    <td colSpan={8} className="px-4 py-2">
-                      <div className="space-y-4">
-                        {/* First Name */}
-                        <div>
-                          <label htmlFor="first_name">First Name</label>
-                          <Input
-                            id="first_name"
-                            name="first_name"
-                            value={editFormData?.first_name || ""}
-                            onChange={handleEditChange}
-                          />
-                        </div>
-
-                        {/* Last Name */}
-                        <div>
-                          <label htmlFor="last_name">Last Name</label>
-                          <Input
-                            id="last_name"
-                            name="last_name"
-                            value={editFormData?.last_name || ""}
-                            onChange={handleEditChange}
-                          />
-                        </div>
-
-                        {/* Email */}
-                        <div>
-                          <label htmlFor="email">Email</label>
-                          <Input
-                            id="email"
-                            name="email"
-                            value={editFormData?.email || ""}
-                            onChange={handleEditChange}
-                          />
-                        </div>
-
-                        {/* Phone */}
-                        <div>
-                          <label htmlFor="phone">Phone</label>
-                          <Input
-                            id="phone"
-                            name="phone"
-                            value={editFormData?.phone || ""}
-                            onChange={handleEditChange}
-                          />
-                        </div>
-
-                        {/* Address */}
-                        <div>
-                          <label htmlFor="address">Address</label>
-                          <Input
-                            id="address"
-                            name="address"
-                            value={editFormData?.address || ""}
-                            onChange={handleEditChange}
-                          />
-                        </div>
-
-                        {/* Updated At (dynamic) */}
-                        <div>
-                          <label>Updated At</label>
-                          <p>{new Date().toLocaleString()}</p>{" "}
-                          {/* Pokazuje aktualny czas */}
-                        </div>
-
-                        {/* Save & Cancel buttons */}
-                        <div className="flex gap-4">
-                          <Button onClick={handleSaveChanges}>Save</Button>
-                          <Button onClick={() => setEditingCustomer(null)}>
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
+              <tr key={customer.id}>
+                <td className="px-4 py-2">{customer.id}</td>
+                <td className="px-4 py-2">{`${customer.first_name} ${customer.last_name}`}</td>
+                <td className="px-4 py-2">{customer.email}</td>
+                <td className="px-4 py-2">{customer.phone}</td>
+                <td className="px-4 py-2">{customer.address}</td>
+                <td className="px-4 py-2">
+                  {new Date(customer.created_at).toLocaleString()}
+                </td>
+                <td className="px-4 py-2">
+                  {new Date(customer.updated_at).toLocaleString()}
+                </td>
+                <td className="px-4 py-2 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditClick(customer)}
+                  >
+                    Edit
+                  </Button>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Edit Customer Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+          </DialogHeader>
+          {editFormData && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="first_name" className="text-right">
+                  First Name
+                </Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  value={editFormData.first_name}
+                  onChange={handleEditChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="last_name" className="text-right">
+                  Last Name
+                </Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  value={editFormData.last_name}
+                  onChange={handleEditChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  value={editFormData.email}
+                  onChange={handleEditChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
+                  Phone
+                </Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={editFormData.phone}
+                  onChange={handleEditChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="address" className="text-right">
+                  Address
+                </Label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={editFormData.address}
+                  onChange={handleEditChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Updated At</Label>
+                <div className="col-span-3 text-sm text-muted-foreground">
+                  {new Date().toLocaleString()}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveChanges}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
