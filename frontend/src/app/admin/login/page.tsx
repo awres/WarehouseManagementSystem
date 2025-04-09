@@ -1,8 +1,11 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Lock } from "lucide-react";
+import { Package, Lock, ArrowLeft, User } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { motion } from "framer-motion";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -51,65 +55,130 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-              <Package className="h-6 w-6 text-primary-foreground" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access the admin panel
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                placeholder="admin"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Logging in...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Lock className="h-4 w-4" />
-                  Login
-                </span>
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-muted/40 to-background p-4 overflow-hidden">
+      {/* Background pattern */}
+      <div className="absolute inset-0 z-0 opacity-5">
+        <div className="absolute inset-0 bg-grid-primary/[0.05] bg-[length:32px_32px]" />
+      </div>
+
+      {/* Back to dashboard button */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="absolute top-4 left-4 z-10"
+      >
+        <Button variant="ghost" size="sm" asChild>
+          <Link
+            href="http://localhost:3000/"
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Link>
+        </Button>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md z-10"
+      >
+        <Card className="w-full shadow-lg border-muted/20">
+          <CardHeader className="space-y-1 text-center pb-6">
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              className="flex justify-center mb-4"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 ring-4 ring-background">
+                <Package className="h-8 w-8 text-primary" />
+              </div>
+            </motion.div>
+            <CardTitle className="text-2xl font-bold">
+              WarehouseOS Admin
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Enter your credentials to access the admin panel
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleLogin}>
+            <CardContent className="space-y-5 pt-2">
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Alert
+                    variant="destructive"
+                    className="border border-destructive/20"
+                  >
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                </motion.div>
               )}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-sm font-medium">
+                  Username
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    placeholder="admin"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+                <div className="text-sm text-right"></div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4 pt-2">
+              <Button
+                className="w-full h-11 text-base font-medium"
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Authenticating...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Sign In
+                  </span>
+                )}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Demo credentials: admin / password
+              </p>
+            </CardFooter>
+          </form>
+        </Card>
+      </motion.div>
     </div>
   );
 }

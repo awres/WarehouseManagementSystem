@@ -1,5 +1,7 @@
 "use client";
 
+import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 import type React from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useState, useEffect, useMemo } from "react";
@@ -27,7 +29,6 @@ import {
   Check,
   Edit,
   Trash2,
-  Eye,
   LineChart,
 } from "lucide-react";
 import Link from "next/link";
@@ -47,10 +48,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Product {
   id: number;
@@ -970,22 +977,34 @@ export default function InventoryPage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Category</label>
                     <div className="relative">
-                      <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                      <select
-                        name="category"
+                      <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 z-10" />
+                      <Select
                         value={formData.category}
-                        onChange={handleInputChange}
-                        className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, category: value })
+                        }
                       >
-                        <option value="">Select Category</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Home Appliances">Home Appliances</option>
-                        <option value="Automotive">Automotive</option>
-                        <option value="Tools">Tools</option>
-                        <option value="Human">Human</option>
-                        <option value="Accessories">Accessories</option>
-                        
-                      </select>
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Select Category">
+                            Select Category
+                          </SelectItem>
+                          <SelectItem value="Electronics">
+                            Electronics
+                          </SelectItem>
+                          <SelectItem value="Home Appliances">
+                            Home Appliances
+                          </SelectItem>
+                          <SelectItem value="Automotive">Automotive</SelectItem>
+                          <SelectItem value="Tools">Tools</SelectItem>
+                          <SelectItem value="Human">Human</SelectItem>
+                          <SelectItem value="Accessories">
+                            Accessories
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -1025,7 +1044,7 @@ export default function InventoryPage() {
                 <div className="mt-8">
                   <Button
                     onClick={handleSubmit}
-                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Product
@@ -1120,21 +1139,34 @@ export default function InventoryPage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Category</label>
                     <div className="relative">
-                      <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                      <select
-                        name="category"
+                      <Layers className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 z-10" />
+                      <Select
                         value={editFormData.category}
-                        onChange={handleEditInputChange}
-                        className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onValueChange={(value) =>
+                          setEditFormData({ ...editFormData, category: value })
+                        }
                       >
-                        <option value="">Select Category</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Home Appliances">Home Appliances</option>
-                        <option value="Automotive">Automotive</option>
-                        <option value="Tools">Tools</option>
-                        <option value="Human">Human</option>
-                        <option value="Accessories">Accessories</option>
-                      </select>
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Select Category">
+                            Select Category
+                          </SelectItem>
+                          <SelectItem value="Electronics">
+                            Electronics
+                          </SelectItem>
+                          <SelectItem value="Home Appliances">
+                            Home Appliances
+                          </SelectItem>
+                          <SelectItem value="Automotive">Automotive</SelectItem>
+                          <SelectItem value="Tools">Tools</SelectItem>
+                          <SelectItem value="Human">Human</SelectItem>
+                          <SelectItem value="Accessories">
+                            Accessories
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 

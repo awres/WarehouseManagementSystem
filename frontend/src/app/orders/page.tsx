@@ -18,13 +18,11 @@ import {
   ChevronDown,
   Filter,
   ArrowUpDown,
-  Eye,
   Edit,
   XCircle,
   Calendar,
   Check,
   SlidersHorizontal,
-  Plus,
   Clock,
   DollarSign,
   User,
@@ -51,6 +49,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Order {
   id: number;
@@ -915,17 +920,22 @@ export default function OrdersPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Status</label>
-                    <select
-                      name="status"
+                    <Select
                       value={editFormData.status}
-                      onChange={handleEditInputChange}
-                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onValueChange={(value) =>
+                        setEditFormData({ ...editFormData, status: value })
+                      }
                     >
-                      <option value="PENDING">PENDING</option>
-                      <option value="PROCESSING">PROCESSING</option>
-                      <option value="SHIPPED">SHIPPED</option>
-                      <option value="CANCELLED">CANCELLED</option>
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="PROCESSING">Processing</SelectItem>
+                        <SelectItem value="SHIPPED">Shipped</SelectItem>
+                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">

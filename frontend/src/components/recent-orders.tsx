@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import axios from "axios"
-import { format } from "date-fns"
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { format } from "date-fns";
 import {
   CalendarIcon,
   CheckCircle2Icon,
@@ -11,38 +11,38 @@ import {
   ShieldAlertIcon,
   UserIcon,
   DollarSign,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface Order {
-  id: number
-  customer_name: string
-  order_date: string
-  status: string
-  amount: number
+  id: number;
+  customer_name: string;
+  order_date: string;
+  status: string;
+  amount: number;
 }
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return format(date, "yyyy/MM/dd HH:mm")
-}
+  const date = new Date(dateString);
+  return format(date, "yyyy/MM/dd HH:mm");
+};
 
 export function RecentOrders() {
-  const router = useRouter()
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     try {
-      setLoading(true)
-      const res = await axios.get("http://localhost:8000/get/orders/")
+      setLoading(true);
+      const res = await axios.get("http://localhost:8000/get/orders/");
 
       const ordersData = res.data
         .map((order: any) => ({
@@ -50,27 +50,32 @@ export function RecentOrders() {
           customer_name: order.customer
             ? `${order.customer.first_name} ${order.customer.last_name}`
             : "Unknown Customer",
-          order_date: order.order_date ? formatDate(order.order_date) : "No date",
+          order_date: order.order_date
+            ? formatDate(order.order_date)
+            : "No date",
           status: order.status || "Pending",
-          amount: typeof order.total === "number" ? order.total : Number.parseFloat(order.total || "0"),
+          amount:
+            typeof order.total === "number"
+              ? order.total
+              : Number.parseFloat(order.total || "0"),
         }))
-        .slice(-5)
+        .slice(-5);
 
-      setOrders(ordersData)
-      setLoading(false)
+      setOrders(ordersData);
+      setLoading(false);
     } catch (err: any) {
-      console.error("Error fetching orders:", err)
-      setError(err.message || "Failed to fetch orders")
-      setLoading(false)
+      console.error("Error fetching orders:", err);
+      setError(err.message || "Failed to fetch orders");
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchOrders()
-  }, [])
+    fetchOrders();
+  }, []);
 
   const getStatusConfig = (status: string) => {
-    const statusLower = status.toLowerCase()
+    const statusLower = status.toLowerCase();
     if (statusLower === "shipped" || statusLower === "completed") {
       return {
         bg: "",
@@ -79,7 +84,7 @@ export function RecentOrders() {
         icon: <CheckCircle2Icon className="h-3.5 w-3.5" />,
         progressColor: "bg-gradient-to-r from-emerald-500 to-green-500",
         iconColor: "text-emerald-600 dark:text-emerald-400",
-      }
+      };
     } else if (statusLower === "cancelled") {
       return {
         bg: "",
@@ -88,7 +93,7 @@ export function RecentOrders() {
         icon: <ShieldAlertIcon className="h-3.5 w-3.5" />,
         progressColor: "bg-gradient-to-r from-red-500 to-rose-500",
         iconColor: "text-red-600 dark:text-red-400",
-      }
+      };
     } else if (statusLower === "processing") {
       return {
         bg: "",
@@ -97,7 +102,7 @@ export function RecentOrders() {
         icon: <Clock3Icon className="h-3.5 w-3.5" />,
         progressColor: "bg-gradient-to-r from-yellow-500 to-amber-500",
         iconColor: "text-yellow-600 dark:text-yellow-400",
-      }
+      };
     } else {
       return {
         bg: "",
@@ -106,9 +111,9 @@ export function RecentOrders() {
         icon: <Clock3Icon className="h-3.5 w-3.5" />,
         progressColor: "bg-gradient-to-r from-blue-500 to-indigo-500",
         iconColor: "text-blue-600 dark:text-blue-400",
-      }
+      };
     }
-  }
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -118,18 +123,16 @@ export function RecentOrders() {
         staggerChildren: 0.05,
       },
     },
-  }
+  };
 
   const item = {
     hidden: { y: 10, opacity: 0 },
     show: { y: 0, opacity: 1 },
-  }
+  };
 
   if (loading) {
     return (
       <div className="space-y-2 p-3 rounded-lg border-0 shadow-lg bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm">
-
-
         {[...Array(3)].map((_, index) => (
           <motion.div
             key={index}
@@ -146,13 +149,12 @@ export function RecentOrders() {
           </motion.div>
         ))}
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
       <div className="p-3 rounded-lg border-0 shadow-lg bg-gradient-to-br from-background to-red-50/30 dark:from-background dark:to-red-950/10 backdrop-blur-sm">
-
         <div className="flex items-center justify-center h-[100px] text-muted-foreground gap-2">
           <ShieldAlertIcon className="h-6 w-6 text-red-500/70" />
           <p className="text-center text-sm">Error loading orders</p>
@@ -166,7 +168,7 @@ export function RecentOrders() {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -176,8 +178,6 @@ export function RecentOrders() {
       initial="hidden"
       animate="show"
     >
-
-
       {orders.length === 0 ? (
         <div className="flex items-center justify-center h-[80px] text-muted-foreground">
           <p className="text-sm">No recent orders found</p>
@@ -185,14 +185,14 @@ export function RecentOrders() {
       ) : (
         <div className="space-y-2">
           {orders.map((order, index) => {
-            const statusConfig = getStatusConfig(order.status)
+            const statusConfig = getStatusConfig(order.status);
 
             return (
               <motion.div
                 key={order.id}
                 className={cn(
                   "rounded-lg border-0 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300",
-                  statusConfig.bg,
+                  statusConfig.bg
                 )}
                 variants={item}
                 whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -202,13 +202,17 @@ export function RecentOrders() {
                     <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 shrink-0",
+                          "flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 shrink-0"
                         )}
                       >
-                        <UserIcon className={cn("h-3.5 w-3.5", statusConfig.iconColor)} />
+                        <UserIcon
+                          className={cn("h-3.5 w-3.5", statusConfig.iconColor)}
+                        />
                       </div>
                       <div>
-                        <p className="font-medium text-sm truncate max-w-[120px]">{order.customer_name}</p>
+                        <p className="font-medium text-sm truncate max-w-[120px]">
+                          {order.customer_name}
+                        </p>
                         <p className="text-xs text-muted-foreground flex items-center gap-0.5 mt-0.5">
                           <CalendarIcon className="h-3 w-3" />
                           {order.order_date}
@@ -219,7 +223,7 @@ export function RecentOrders() {
                       <Badge
                         className={cn(
                           statusConfig.badge,
-                          "font-medium px-2 py-0.5 text-xs rounded-full shadow-sm flex items-center gap-1 mb-1",
+                          "font-medium px-2 py-0.5 text-xs rounded-full shadow-sm flex items-center gap-1 mb-1"
                         )}
                       >
                         {statusConfig.icon}
@@ -247,11 +251,10 @@ export function RecentOrders() {
                   </motion.div>
                 </div>
               </motion.div>
-            )
+            );
           })}
         </div>
       )}
     </motion.div>
-  )
+  );
 }
-

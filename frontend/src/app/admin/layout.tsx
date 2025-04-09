@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  X,
+  Target,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ export default function AdminLayout({
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/users", label: "User Management", icon: Users },
     { href: "/admin/settings", label: "Settings", icon: Settings },
+    { href: "/admin/roles", label: "Roles", icon: Target },
   ];
 
   return (
@@ -133,7 +135,7 @@ export default function AdminLayout({
             </Link>
           ))}
         </nav>
-
+        <ThemeToggle />
         <div className="ml-auto flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
