@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2361k=2k$k3%7grevs9!wh6soioc!8-swg)t^kx+_@9#e76_zu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 REST_FRAMEWORK = {
      'DEFAULT_RENDERER_CLASSES': (
@@ -62,7 +62,7 @@ MIDDLEWARE.insert(1, 'corsheaders.middleware.CorsMiddleware')
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://warehouse-management-system-sage.vercel.app/"  # Adres frontendu
+    "https://warehouse-management-system-sage.vercel.app"  # Adres frontendu
 ]
 
 ROOT_URLCONF = 'warehouse_management.urls'
